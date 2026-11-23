@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AirLens VN - Giám sát Chất lượng Không khí Đô thị Thời gian thực</title>
+  
+  <!-- Meta SEO -->
+  <meta name="description" content="Hệ thống theo dõi chất lượng không khí (AQI), PM2.5, PM10 và thời tiết theo thời gian thực tại các đô thị Việt Nam từ dữ liệu mở Open-Meteo & Copernicus." />
+  <meta name="author" content="AirLens VN Team" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a'
+            },
+            slate: {
+              850: '#131d2e',
+              900: '#0f172a',
+              950: '#070b14'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet.js CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    /* Tùy chỉnh thanh cuộn */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Hiệu ứng pulse cho marker đang chọn trên bản đồ */
+    .custom-pulse-marker {
+      position: relative;
+    }
+    .custom-pulse-marker::after {
+      content: '';
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      top: -6px;
+      left: -6px;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.45);
+      animation: leaflet-pulse 2s infinite ease-out;
+      z-index: -1;
+    }
+    @keyframes leaflet-pulse {
+      0% {
+        transform: scale(0.6);
+        opacity: 0.9;
+      }
+      100% {
+        transform: scale(2.2);
+        opacity: 0;
+      }
+    }
+
+    /* Tinh chỉnh Leaflet Popup cho Dark Theme */
+    .leaflet-popup-content-wrapper {
+      background-color: #1e293b !important;
+      color: #f1f5f9 !important;
+      border-radius: 12px !important;
+      padding: 4px 6px !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+      border: 1px solid #334155 !important;
+    }
+    .leaflet-popup-tip {
+      background-color: #1e293b !important;
+    }
+    .leaflet-popup-close-button {
+      color: #94a3b8 !important;
+      padding: 8px !important;
+    }
+    .leaflet-container {
+      background-color: #0b1120 !important;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+  <!-- ========================================== -->
+  <!-- 1. TOP NAVIGATION BAR                      -->
+  <!-- ========================================== -->
+  <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Logo & Tên dự án -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-500 flex items-center justify-center shadow-md shadow-brand-500/20 ring-1 ring-white/20">
+          <i data-lucide="wind" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-lg sm:text-xl tracking-tight text-white">AirLens <span class="text-brand-400">VN</span></h1>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+              Live API
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Urban Air Quality Monitor • Giám sát vi khí hậu đô thị</p>
+        </div>
+      </div>
+
+      <!-- Controls: Chọn đô thị & GPS -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Dropdown chọn nhanh 5 đô thị -->
+        <div class="relative">
+          <select id="citySelect" class="bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs sm:text-sm font-medium rounded-lg px-3 py-2 pr-8 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 appearance-none cursor-pointer transition">
+            <option value="danang" selected>📍 Đà Nẵng</option>
+            <option value="hanoi">📍 Hà Nội</option>
+            <option value="hcm">📍 TP. Hồ Chí Minh</option>
+            <option value="haiphong">📍 Hải Phòng</option>
+            <option value="cantho">📍 Cần Thơ</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          </div>
+        </div>
+
+        <!-- Nút Vị trí của tôi -->
+        <button id="btnGeo" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-650 text-slate-200 text-xs sm:text-sm font-medium rounded-lg px-3 py-2 border border-slate-700 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <i data-lucide="crosshair" class="w-4 h-4 text-brand-400" id="geoIcon"></i>
+          <span class="hidden md:inline">Vị trí của tôi</span>
+        </button>
+
+        <!-- Nút Làm mới (Refresh) -->
+        <button id="btnRefresh" title="Cập nhật lại số liệu" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition">
+          <i data-lucide="refresh-cw" class="w-4 h-4" id="refreshIcon"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- THÔNG BÁO TRẠNG THÁI / ALERT (ẨN MẶC ĐỊNH) -->
+  <!-- ========================================== -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 max-w-sm bg-slate-800 border border-slate-700 text-slate-200 p-4 rounded-xl shadow-2xl flex items-start gap-3">
+    <div id="toastIcon" class="mt-0.5 text-brand-400">
+      <i data-lucide="check-circle" class="w-5 h-5"></i>
+    </div>
+    <div class="flex-1 text-sm">
+      <p id="toastTitle" class="font-semibold text-white">Thông báo</p>
+      <p id="toastMessage" class="text-slate-400 text-xs mt-0.5">Dữ liệu đã được cập nhật thành công.</p>
+    </div>
+    <button onclick="hideToast()" class="text-slate-400 hover:text-white">
+      <i data-lucide="x" class="w-4 h-4"></i>
+    </button>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 2. MAIN SECTION (2 CỘT LINH HOẠT)         -->
+  <!-- ========================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+    <!-- Grid 2 cột: Trái (~60%) Bản đồ, Phải (~40%) Dữ liệu -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- ======================================== -->
+      <!-- CỘT TRÁI: BẢN ĐỒ TƯƠNG TÁC LEAFLET (7/12)-->
+      <!-- ======================================== -->
+      <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+        <!-- Map Header bar -->
+        <div class="p-4 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <i data-lucide="map-pin" class="w-4 h-4 text-brand-400"></i>
+            <span class="font-semibold text-sm text-white">Bản đồ Giám sát Không gian</span>
+            <span class="text-xs text-slate-400 hidden sm:inline">(Click vào điểm bất kỳ để đo)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- Đổi layer bản đồ -->
+            <button id="btnMapStyle" class="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700 transition flex items-center gap-1.5">
+              <i data-lucide="layers" class="w-3.5 h-3.5 text-cyan-400"></i>
+              <span id="mapStyleLabel">Giao diện Sáng</span>
+            </button>
+            <span class="text-[11px] text-slate-500 font-mono" id="currentCoordDisplay">16.054, 108.202</span>
+          </div>
+        </div>
+
+        <!-- Khung chứa Leaflet Map -->
+        <div class="relative w-full h-[360px] sm:h-[480px] lg:h-[580px]" id="mapContainer">
+          <div id="map" class="w-full h-full z-10"></div>
+          
+          <!-- Hướng dẫn click nổi góc dưới bản đồ -->
+          <div class="absolute bottom-3 left-3 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs text-slate-300 shadow-md flex items-center gap-2 pointer-events-none">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+            <span>Chạm hoặc click bất cứ đâu trên bản đồ để ghim & đo vi khí hậu</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================== -->
+      <!-- CỘT PHẢI: BẢNG DỮ LIỆU VI KHÍ HẬU (5/12) -->
+      <!-- ======================================== -->
+      <div class="lg:col-span-5 space-y-4">
+
+        <!-- THÔNG TIN ĐỊA ĐIỂM ĐANG CHỌN -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              <h2 id="locationName" class="text-lg font-bold text-white tracking-tight">Đà Nẵng, Việt Nam</h2>
+            </div>
+            <p id="locationSub" class="text-xs text-slate-400 mt-0.5">Tọa độ: 16.054°N, 108.202°E • Cập nhật: <span id="lastUpdated">Đang tải...</span></p>
+          </div>
+          <!-- Loader indicator -->
+          <div id="loadingSpinner" class="hidden">
+            <i data-lucide="loader-2" class="w-5 h-5 text-brand-400 animate-spin"></i>
+          </div>
+        </div>
+
+        <!-- CARD AQI CHÍNH (ĐỔ MÀU THEO NGƯỠNG) -->
+        <div id="aqiCard" class="relative overflow-hidden rounded-2xl p-5 border transition-all duration-500 shadow-xl bg-gradient-to-br from-emerald-950/60 via-slate-900 to-slate-900 border-emerald-500/30">
+          <!-- Background glow circle -->
+          <div id="aqiGlow" class="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-xs font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="shield-check" class="w-4 h-4 text-brand-400" id="aqiStatusIcon"></i>
+                Chỉ số Chất lượng Không khí (AQI)
+              </span>
+              <div class="mt-2 flex items-baseline gap-3">
+                <span id="aqiValue" class="text-5xl sm:text-6xl font-black tracking-tight text-white">--</span>
+                <span class="text-xs text-slate-400 font-medium">Chuẩn US AQI</span>
+              </div>
+            </div>
+
+            <!-- Badge trạng thái AQI -->
+            <div id="aqiBadge" class="px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span id="aqiStatusText">Đang tải...</span>
+            </div>
+          </div>
+
+          <!-- Diễn giải chất lượng không khí -->
+          <p id="aqiDesc" class="mt-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Chất lượng không khí lý tưởng, không có nguy cơ đối với sức khỏe cộng đồng.
+          </p>
+
+          <!-- Thanh đo trực quan AQI Bar Indicator -->
+          <div class="mt-4 pt-3 border-t border-slate-800/80">
+            <div class="flex justify-between text-[10px] text-slate-400 font-medium mb-1">
+              <span>0 (Tốt)</span>
+              <span>50</span>
+              <span>100</span>
+              <span>150</span>
+              <span>200</span>
+              <span>300+</span>
+            </div>
+            <div class="relative w-full h-2 rounded-full bg-gradient-to-r from-emerald-400 via-amber-400 via-orange-500 via-red-500 to-purple-600 overflow-hidden shadow-inner"></div>
+            <!-- Vị trí kim chỉ thị -->
+            <div class="relative w-full h-1 mt-0.5">
+              <div id="aqiIndicatorPin" class="absolute -top-3 -ml-1.5 text-white transition-all duration-500" style="left: 10%;">
+                <i data-lucide="triangle" class="w-3 h-3 fill-current rotate-180"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GRID 4 THÔNG SỐ ĐO VI KHÍ HẬU -->
+        <div class="grid grid-cols-2 gap-3">
+
+          <!-- PM2.5 -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 hover:border-slate-700 transition shadow-sm">
+            <div class="flex items-center justify-between text-slate-400">
+              <span class="text-xs font-medium">Bụi mịn PM2.5</span>
+              <i data-lucide="cloud-fog" class="w-4 h-4 text-rose-400"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1">
+              <span id="valPm25" class="text-2xl font-bold text-white">--</span>
+              <span class="text-xs text-slate-400">μg/m³</span>
+            </div>
+            <div class="mt-1 flex items-center justify-between text-[11px]">
+              <span class="text-slate-500">WHO: &le; 15</span>
+              <span id="badgePm25" class="text-emerald-400 font-medium">Bình thường</span>
+            </div>
+          </div>
+
+          <!-- PM10 -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 hover:border-slate-700 transition shadow-sm">
+            <div class="flex items-center justify-between text-slate-400">
+              <span class="text-xs font-medium">Bụi thô PM10</span>
+              <i data-lucide="wind" class="w-4 h-4 text-amber-400"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1">
+              <span id="valPm10" class="text-2xl font-bold text-white">--</span>
+              <span class="text-xs text-slate-400">μg/m³</span>
+            </div>
+            <div class="mt-1 flex items-center justify-between text-[11px]">
+              <span class="text-slate-500">WHO: &le; 45</span>
+              <span id="badgePm10" class="text-emerald-400 font-medium">Bình thường</span>
+            </div>
+          </div>
+
+          <!-- Nhiệt độ -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 hover:border-slate-700 transition shadow-sm">
+            <div class="flex items-center justify-between text-slate-400">
+              <span class="text-xs font-medium">Nhiệt độ</span>
+              <i data-lucide="thermometer" class="w-4 h-4 text-orange-400"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1">
+              <span id="valTemp" class="text-2xl font-bold text-white">--</span>
+              <span class="text-xs text-slate-400">°C</span>
+            </div>
+            <div class="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
+              <span>Cảm nhận ngoài trời</span>
+              <span id="tempDesc" class="text-slate-300 font-medium">Mát mẻ</span>
+            </div>
+          </div>
+
+          <!-- Độ ẩm -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 hover:border-slate-700 transition shadow-sm">
+            <div class="flex items-center justify-between text-slate-400">
+              <span class="text-xs font-medium">Độ ẩm</span>
+              <i data-lucide="droplets" class="w-4 h-4 text-cyan-400"></i>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1">
+              <span id="valHumidity" class="text-2xl font-bold text-white">--</span>
+              <span class="text-xs text-slate-400">%</span>
+            </div>
+            <div class="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
+              <span>Độ ẩm tương đối</span>
+              <span id="humDesc" class="text-slate-300 font-medium">Dễ chịu</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- BIỂU ĐỒ XU HƯỚNG 24H (CHART.JS) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="trending-up" class="w-4 h-4 text-brand-400"></i>
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Biến thiên PM2.5 & AQI (24 Giờ)</span>
+            </div>
+            <span class="text-[11px] text-slate-500">Hôm nay</span>
+          </div>
+          <div class="relative w-full h-[180px]">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. BOTTOM SECTION: KHUYẾN NGHỊ ĐÔ THỊ      -->
+    <!-- ========================================== -->
+    <section class="space-y-3">
+      <div class="flex items-center gap-2">
+        <i data-lucide="heart-pulse" class="w-5 h-5 text-rose-400"></i>
+        <h3 class="font-bold text-base text-white tracking-tight">Khuyến nghị Hành động Đô thị & Sức khỏe Cộng đồng</h3>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- Thẻ 1: Đi lại & Khẩu trang -->
+        <div id="cardRecCommute" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 transition-all duration-300 flex items-start gap-3.5 shadow-sm">
+          <div id="iconBoxCommute" class="p-3 rounded-xl bg-slate-800 text-brand-400 border border-slate-700/60">
+            <i data-lucide="bike" class="w-5 h-5" id="recIconCommute"></i>
+          </div>
+          <div class="flex-1">
+            <h4 class="text-sm font-semibold text-white">Đi lại & Di chuyển</h4>
+            <p id="recTextCommute" class="text-xs text-slate-400 mt-1 leading-relaxed">
+              Không khí trong lành, hoàn hảo cho các hoạt động di chuyển công cộng, đi bộ hoặc xe đạp.
+            </p>
+          </div>
+        </div>
+
+        <!-- Thẻ 2: Thể thao ngoài trời -->
+        <div id="cardRecSport" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 transition-all duration-300 flex items-start gap-3.5 shadow-sm">
+          <div id="iconBoxSport" class="p-3 rounded-xl bg-slate-800 text-brand-400 border border-slate-700/60">
+            <i data-lucide="activity" class="w-5 h-5" id="recIconSport"></i>
+          </div>
+          <div class="flex-1">
+            <h4 class="text-sm font-semibold text-white">Thể thao Ngoài trời</h4>
+            <p id="recTextSport" class="text-xs text-slate-400 mt-1 leading-relaxed">
+              Điều kiện lý tưởng để tập thể dục, chạy bộ và vận động ngoài trời mà không lo kích ứng đường hô hấp.
+            </p>
+          </div>
+        </div>
+
+        <!-- Thẻ 3: Bảo vệ nhà cửa & Thông khí -->
+        <div id="cardRecHome" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 transition-all duration-300 flex items-start gap-3.5 shadow-sm">
+          <div id="iconBoxHome" class="p-3 rounded-xl bg-slate-800 text-brand-400 border border-slate-700/60">
+            <i data-lucide="wind" class="w-5 h-5" id="recIconHome"></i>
+          </div>
+          <div class="flex-1">
+            <h4 class="text-sm font-semibold text-white">Không gian Sống & Nhà cửa</h4>
+            <p id="recTextHome" class="text-xs text-slate-400 mt-1 leading-relaxed">
+              Nên mở cửa sổ đón gió tươi tự nhiên để lưu thông không khí trong nhà và tiết kiệm năng lượng làm mát.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- 4. FOOTER                                  -->
+  <!-- ========================================== -->
+  <footer class="mt-auto border-t border-slate-800/80 bg-slate-900/60 py-6 text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
+        <span>Nguồn dữ liệu: <strong>Open-Meteo Air Quality Open API</strong> & mô hình khí quyển <strong>Copernicus Atmosphere Monitoring Service (CAMS)</strong>.</span>
+      </div>
+      <div class="flex items-center gap-4 text-slate-500">
+        <span>Cập nhật tự động thời gian thực</span>
+        <span>•</span>
+        <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" class="hover:text-slate-300 transition underline underline-offset-2">Tài liệu API</a>
+        <span>•</span>
+        <span class="text-slate-400">AirLens VN &copy; 2026</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- 5. JAVASCRIPT REAL-TIME LOGIC              -->
+  <!-- ========================================== -->
+  <script>
+    // ------------------------------------------
+    // Dữ liệu tọa độ 5 đô thị lớn
+    // ------------------------------------------
+    const CITIES = {
+      danang: { name: 'Đà Nẵng', lat: 16.0544, lng: 108.2022 },
+      hanoi: { name: 'Hà Nội', lat: 21.0285, lng: 105.8542 },
+      hcm: { name: 'TP. Hồ Chí Minh', lat: 10.8231, lng: 106.6297 },
+      haiphong: { name: 'Hải Phòng', lat: 20.8449, lng: 106.6881 },
+      cantho: { name: 'Cần Thơ', lat: 10.0452, lng: 105.7469 }
+    };
+
+    // Trạng thái ứng dụng
+    let currentLat = CITIES.danang.lat;
+    let currentLng = CITIES.danang.lng;
+    let currentLocationName = CITIES.danang.name;
+    let map = null;
+    let activeMarker = null;
+    let cityMarkersGroup = null;
+    let trendChart = null;
+    let currentMapTileLayer = null;
+    let isDarkTile = true;
+
+    // Tile layers cho Leaflet
+    const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    const TILE_VOYAGER = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+
+    // ------------------------------------------
+    // Khởi tạo ứng dụng khi DOM sẵn sàng
+    // ------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initMap();
+      initChart();
+      initEventListeners();
+      
+      // Tải dữ liệu ban đầu cho Đà Nẵng
+      fetchFullData(currentLat, currentLng, currentLocationName);
+    });
+
+    // ------------------------------------------
+    // Khởi tạo bản đồ Leaflet
+    // ------------------------------------------
+    function initMap() {
+      map = L.map('map', {
+        zoomControl: true,
+        attributionControl: true
+      }).setView([currentLat, currentLng], 12);
+
+      // Thêm tile layer mặc định (Dark Matter)
+      currentMapTileLayer = L.tileLayer(TILE_DARK, {
+        attribution: TILE_ATTRIBUTION,
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(map);
+
+      // Layer group cho các marker thành phố
+      cityMarkersGroup = L.layerGroup().addTo(map);
+
+      // Tạo icon ghim vị trí đang chọn
+      createActiveMarker(currentLat, currentLng, currentLocationName);
+
+      // Cắm sẵn trạm cho 5 thành phố lớn
+      Object.keys(CITIES).forEach(key => {
+        const city = CITIES[key];
+        const dotIcon = L.divIcon({
+          className: 'city-dot-marker',
+          html: `<div class="w-3.5 h-3.5 bg-cyan-400 rounded-full border-2 border-slate-900 shadow-md"></div>`,
+          iconSize: [14, 14],
+          iconAnchor: [7, 7]
+        });
+
+        const m = L.marker([city.lat, city.lng], { icon: dotIcon });
+        m.bindTooltip(`<strong>${city.name}</strong><br><span style="font-size:11px;color:#94a3b8">Bấm để xem số liệu</span>`, {
+          direction: 'top',
+          offset: [0, -6]
+        });
+        m.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          document.getElementById('citySelect').value = key;
+          selectCity(key);
+        });
+        cityMarkersGroup.addLayer(m);
+      });
+
+      // Sự kiện CLICK vào điểm bất kỳ trên bản đồ
+      map.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        currentLat = parseFloat(lat.toFixed(4));
+        currentLng = parseFloat(lng.toFixed(4));
+        currentLocationName = `Tọa độ (${currentLat}, ${currentLng})`;
+        
+        // Reset dropdown chọn thành phố về trạng thái tùy chọn
+        document.getElementById('citySelect').selectedIndex = -1;
+
+        moveActiveMarker(currentLat, currentLng, currentLocationName);
+        fetchFullData(currentLat, currentLng, currentLocationName);
+      });
+    }
+
+    // Tạo / Di chuyển ghim vị trí hoạt động
+    function createActiveMarker(lat, lng, title) {
+      const pinIcon = L.divIcon({
+        className: 'custom-pulse-marker',
+        html: `
+          <div class="w-5 h-5 bg-emerald-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+            <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+          </div>
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+
+      activeMarker = L.marker([lat, lng], { icon: pinIcon, zIndexOffset: 1000 }).addTo(map);
+      activeMarker.bindPopup(`
+        <div class="text-xs">
+          <p class="font-bold text-white text-sm">${title}</p>
+          <p class="text-slate-400 mt-1">Đang đo vi khí hậu tại điểm này</p>
+        </div>
+      `);
+    }
+
+    function moveActiveMarker(lat, lng, title) {
+      if (activeMarker) {
+        activeMarker.setLatLng([lat, lng]);
+        activeMarker.setPopupContent(`
+          <div class="text-xs">
+            <p class="font-bold text-white text-sm">${title}</p>
+            <p class="text-slate-400 mt-1">Đang đo vi khí hậu tại điểm này</p>
+          </div>
+        `);
+      }
+      document.getElementById('currentCoordDisplay').innerText = `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
+    }
+
+    // ------------------------------------------
+    // Khởi tạo Biểu đồ Chart.js
+    // ------------------------------------------
+    function initChart() {
+      const ctx = document.getElementById('trendChart').getContext('2d');
+      
+      // Tạo gradient màu xanh emerald
+      const gradient = ctx.createLinearGradient(0, 0, 0, 160);
+      gradient.addColorStop(0, 'rgba(34, 197, 94, 0.4)');
+      gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
+
+      trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+          datasets: [
+            {
+              label: 'PM2.5 (μg/m³)',
+              data: Array(24).fill(0),
+              borderColor: '#22c55e',
+              borderWidth: 2.5,
+              backgroundColor: gradient,
+              fill: true,
+              tension: 0.35,
+              pointRadius: 2,
+              pointHoverRadius: 5,
+              pointHoverBackgroundColor: '#4ade80',
+              pointHoverBorderColor: '#ffffff'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              titleColor: '#f8fafc',
+              bodyColor: '#cbd5e1',
+              borderColor: '#334155',
+              borderWidth: 1,
+              padding: 8,
+              boxPadding: 4,
+              usePointStyle: true,
+              callbacks: {
+                label: function(context) {
+                  return ` PM2.5: ${context.parsed.y} μg/m³`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                color: '#64748b',
+                font: { size: 10 },
+                maxTicksLimit: 8
+              }
+            },
+            y: {
+              grid: {
+                color: '#1e293b',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#64748b',
+                font: { size: 10 },
+                precision: 0
+              },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // ------------------------------------------
+    // Cập nhật biểu đồ với dữ liệu mới
+    // ------------------------------------------
+    function updateTrendChart(times, pm25Values) {
+      if (!trendChart) return;
+
+      // Định dạng lại nhãn giờ (từ ISO "2026-11-24T05:00" -> "05:00")
+      const formattedLabels = times.map(t => {
+        const parts = t.split('T');
+        return parts[1] || t;
+      });
+
+      trendChart.data.labels = formattedLabels;
+      trendChart.data.datasets[0].data = pm25Values;
+      trendChart.update();
+    }
+
+    // ------------------------------------------
+    // GỌI API OPEN-METEO THỜI GIAN THỰC
+    // ------------------------------------------
+    async function fetchFullData(lat, lng, locName) {
+      setLoading(true);
+      document.getElementById('locationName').innerText = locName;
+      document.getElementById('locationSub').innerHTML = `Tọa độ: ${lat}°N, ${lng}°E • <span id="lastUpdated">Đang tải số liệu...</span>`;
+
+      // API Endpoints
+      const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=european_aqi,us_aqi,pm10,pm2_5&hourly=pm2_5,us_aqi&timezone=auto&forecast_days=1`;
+      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m&timezone=auto`;
+
+      try {
+        const [airRes, weatherRes] = await Promise.all([
+          fetch(airUrl),
+          fetch(weatherUrl)
+        ]);
+
+        if (!airRes.ok || !weatherRes.ok) {
+          throw new Error('Không thể kết nối đến máy chủ Open-Meteo');
+        }
+
+        const airData = await airRes.json();
+        const weatherData = await weatherRes.json();
+
+        renderDashboard(airData, weatherData);
+        showToast('Cập nhật thành công', `Đã nhận dữ liệu mới nhất tại ${locName}.`, 'success');
+
+      } catch (err) {
+        console.error('Lỗi lấy dữ liệu Open-Meteo:', err);
+        showToast('Lỗi tải dữ liệu', 'Không thể kết nối API. Vui lòng kiểm tra lại mạng hoặc thử lại.', 'error');
+        document.getElementById('locationSub').innerHTML = `Tọa độ: ${lat}°N, ${lng}°E • <span class="text-rose-400">Lỗi kết nối</span>`;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ------------------------------------------
+    // RENDER SỐ LIỆU VÀO GIAO DIỆN DOM
+    // ------------------------------------------
+    function renderDashboard(airData, weatherData) {
+      const curAir = airData.current || {};
+      const curWeather = weatherData.current || {};
+
+      // 1. Chỉ số AQI (Ưu tiên US AQI nếu có, hoặc tính toán dựa trên european_aqi / pm2_5)
+      let aqi = curAir.us_aqi;
+      if (aqi === undefined || aqi === null) {
+        // Fallback xấp xỉ từ PM2.5 nếu us_aqi trống
+        aqi = calculateApproxUsAqi(curAir.pm2_5);
+      }
+
+      const pm25 = curAir.pm2_5 !== undefined ? Math.round(curAir.pm2_5 * 10) / 10 : '--';
+      const pm10 = curAir.pm10 !== undefined ? Math.round(curAir.pm10 * 10) / 10 : '--';
+      const temp = curWeather.temperature_2m !== undefined ? Math.round(curWeather.temperature_2m * 10) / 10 : '--';
+      const humidity = curWeather.relative_humidity_2m !== undefined ? Math.round(curWeather.relative_humidity_2m) : '--';
+
+      // Cập nhật DOM các thẻ đo
+      document.getElementById('aqiValue').innerText = aqi !== null && aqi !== undefined ? Math.round(aqi) : '--';
+      document.getElementById('valPm25').innerText = pm25;
+      document.getElementById('valPm10').innerText = pm10;
+      document.getElementById('valTemp').innerText = temp;
+      document.getElementById('valHumidity').innerText = humidity;
+
+      // Thời gian cập nhật
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('lastUpdated').innerText = `Vừa xong lúc ${timeStr}`;
+
+      // Đánh giá PM2.5 theo WHO
+      const badgePm25 = document.getElementById('badgePm25');
+      if (pm25 <= 15) {
+        badgePm25.innerText = 'Rất tốt (WHO)';
+        badgePm25.className = 'text-emerald-400 font-medium';
+      } else if (pm25 <= 35) {
+        badgePm25.innerText = 'Chấp nhận được';
+        badgePm25.className = 'text-amber-400 font-medium';
+      } else {
+        badgePm25.innerText = 'Vượt chuẩn WHO';
+        badgePm25.className = 'text-rose-400 font-medium';
+      }
+
+      // Đánh giá PM10 theo WHO
+      const badgePm10 = document.getElementById('badgePm10');
+      if (pm10 <= 45) {
+        badgePm10.innerText = 'Đạt chuẩn WHO';
+        badgePm10.className = 'text-emerald-400 font-medium';
+      } else {
+        badgePm10.innerText = 'Vượt khuyến nghị';
+        badgePm10.className = 'text-orange-400 font-medium';
+      }
+
+      // Đánh giá nhiệt độ
+      const tempDesc = document.getElementById('tempDesc');
+      if (temp < 20) tempDesc.innerText = 'Se lạnh';
+      else if (temp <= 28) tempDesc.innerText = 'Mát mẻ / Dễ chịu';
+      else if (temp <= 34) tempDesc.innerText = 'Khá oi bức';
+      else tempDesc.innerText = 'Nắng nóng gắt';
+
+      // Phân cấp mức độ AQI & đổi màu động
+      updateAqiTheme(aqi);
+
+      // Cập nhật biểu đồ xu hướng 24h
+      if (airData.hourly && airData.hourly.time && airData.hourly.pm2_5) {
+        updateTrendChart(airData.hourly.time, airData.hourly.pm2_5);
+      }
+    }
+
+    // ------------------------------------------
+    // CẬP NHẬT MÀU ĐỘNG & KHUYẾN NGHỊ HÀNH ĐỘNG
+    // ------------------------------------------
+    function updateAqiTheme(aqi) {
+      const aqiCard = document.getElementById('aqiCard');
+      const aqiGlow = document.getElementById('aqiGlow');
+      const aqiBadge = document.getElementById('aqiBadge');
+      const aqiStatusText = document.getElementById('aqiStatusText');
+      const aqiDesc = document.getElementById('aqiDesc');
+      const aqiIndicatorPin = document.getElementById('aqiIndicatorPin');
+      const aqiStatusIcon = document.getElementById('aqiStatusIcon');
+
+      // Vị trí thanh đo (0 -> 300)
+      const pinPercent = Math.min(Math.max((aqi / 300) * 100, 2), 98);
+      aqiIndicatorPin.style.left = `${pinPercent}%`;
+
+      // Khuyến nghị Elements
+      const recCommute = document.getElementById('recTextCommute');
+      const recSport = document.getElementById('recTextSport');
+      const recHome = document.getElementById('recTextHome');
+      const iconBoxCommute = document.getElementById('iconBoxCommute');
+      const iconBoxSport = document.getElementById('iconBoxSport');
+      const iconBoxHome = document.getElementById('iconBoxHome');
+
+      if (aqi <= 50) {
+        // TỐT (0 - 50) - Xanh lá
+        aqiCard.className = "relative overflow-hidden rounded-2xl p-5 border transition-all duration-500 shadow-xl bg-gradient-to-br from-emerald-950/60 via-slate-900 to-slate-900 border-emerald-500/40";
+        aqiGlow.className = "absolute -top-12 -right-12 w-44 h-44 rounded-full bg-emerald-500/15 blur-3xl pointer-events-none";
+        aqiBadge.className = "px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm";
+        aqiStatusText.innerText = "Tốt (Good)";
+        aqiDesc.innerText = "Chất lượng không khí đạt mức an toàn tối ưu, không tiềm ẩn nguy cơ sức khỏe đối với bất kỳ ai.";
+        
+        // Khuyến nghị
+        recCommute.innerText = "Không khí trong lành, hoàn hảo cho các hoạt động di chuyển công cộng, đi bộ hoặc đạp xe.";
+        recSport.innerText = "Điều kiện lý tưởng để tập thể dục ngoài trời, chạy bộ hoặc vận động thể thao tự do.";
+        recHome.innerText = "Nên mở rộng cửa sổ để lưu thông khí tươi tự nhiên, làm sạch không gian nhà ở.";
+        setRecIconStyle(iconBoxCommute, 'text-emerald-400');
+        setRecIconStyle(iconBoxSport, 'text-emerald-400');
+        setRecIconStyle(iconBoxHome, 'text-emerald-400');
+
+      } else if (aqi <= 100) {
+        // TRUNG BÌNH (51 - 100) - Vàng
+        aqiCard.className = "relative overflow-hidden rounded-2xl p-5 border transition-all duration-500 shadow-xl bg-gradient-to-br from-amber-950/60 via-slate-900 to-slate-900 border-amber-500/40";
+        aqiGlow.className = "absolute -top-12 -right-12 w-44 h-44 rounded-full bg-amber-500/15 blur-3xl pointer-events-none";
+        aqiBadge.className = "px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 shadow-sm";
+        aqiStatusText.innerText = "Trung bình (Moderate)";
+        aqiDesc.innerText = "Chất lượng không khí ở mức chấp nhận được. Người cực kỳ nhạy cảm có thể bị kích ứng nhẹ.";
+
+        // Khuyến nghị
+        recCommute.innerText = "Người bình thường di chuyển bình thường; nhóm nhạy cảm có thể đeo khẩu trang thông thường.";
+        recSport.innerText = "Có thể duy trì tập luyện ngoài trời bình thường, giảm cường độ nếu cảm thấy khó thở.";
+        recHome.innerText = "Vẫn có thể mở cửa sổ thông gió tự nhiên vào những thời điểm ít xe cộ lưu thông.";
+        setRecIconStyle(iconBoxCommute, 'text-amber-400');
+        setRecIconStyle(iconBoxSport, 'text-amber-400');
+        setRecIconStyle(iconBoxHome, 'text-amber-400');
+
+      } else if (aqi <= 150) {
+        // KÉM / NHẠY CẢM (101 - 150) - Cam
+        aqiCard.className = "relative overflow-hidden rounded-2xl p-5 border transition-all duration-500 shadow-xl bg-gradient-to-br from-orange-950/60 via-slate-900 to-slate-900 border-orange-500/40";
+        aqiGlow.className = "absolute -top-12 -right-12 w-44 h-44 rounded-full bg-orange-500/15 blur-3xl pointer-events-none";
+        aqiBadge.className = "px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-orange-500/20 text-orange-300 border border-orange-500/30 flex items-center gap-1.5 shadow-sm";
+        aqiStatusText.innerText = "Kém (Nhạy cảm)";
+        aqiDesc.innerText = "Trẻ em, người lớn tuổi và người có tiền sử bệnh hô hấp (hen suyễn, viêm phế quản) có thể bị ảnh hưởng tiêu cực.";
+
+        // Khuyến nghị
+        recCommute.innerText = "Nên chủ động đeo khẩu trang chống bụi mịn (N95/KN95) khi tham gia giao thông trên các trục đường lớn.";
+        recSport.innerText = "Nhóm người nhạy cảm nên giảm bớt các hoạt động gắng sức nặng ngoài trời.";
+        recHome.innerText = "Đóng bớt cửa sổ vào giờ cao điểm kẹt xe; bật máy lọc không khí nếu có thể.";
+        setRecIconStyle(iconBoxCommute, 'text-orange-400');
+        setRecIconStyle(iconBoxSport, 'text-orange-400');
+        setRecIconStyle(iconBoxHome, 'text-orange-400');
+
+      } else {
+        // NGUY HẠI / XẤU (> 150) - Đỏ / Tím
+        aqiCard.className = "relative overflow-hidden rounded-2xl p-5 border transition-all duration-500 shadow-xl bg-gradient-to-br from-rose-950/70 via-slate-900 to-slate-900 border-rose-500/50";
+        aqiGlow.className = "absolute -top-12 -right-12 w-44 h-44 rounded-full bg-rose-500/20 blur-3xl pointer-events-none";
+        aqiBadge.className = "px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-rose-500/25 text-rose-300 border border-rose-500/40 flex items-center gap-1.5 shadow-sm";
+        aqiStatusText.innerText = "Xấu / Nguy hại";
+        aqiDesc.innerText = "Toàn bộ cư dân có nguy cơ bắt đầu chịu ảnh hưởng sức khỏe, nhóm nhạy cảm có thể gặp các triệu chứng nghiêm trọng hơn.";
+
+        // Khuyến nghị
+        recCommute.innerText = "Hạn chế ra ngoài nếu không thực sự cần thiết. Luôn đeo khẩu trang lọc bụi mịn chuẩn N95.";
+        recSport.innerText = "Chuyển toàn bộ bài tập thể thao vào phòng tập trong nhà hoặc tạm hoãn vận động nặng.";
+        recHome.innerText = "Đóng kín toàn bộ cửa sổ nhà ở; bật máy lọc không khí ở chế độ tăng cường để bảo vệ gia đình.";
+        setRecIconStyle(iconBoxCommute, 'text-rose-400');
+        setRecIconStyle(iconBoxSport, 'text-rose-400');
+        setRecIconStyle(iconBoxHome, 'text-rose-400');
+      }
+
+      lucide.createIcons();
+    }
+
+    function setRecIconStyle(elem, textColorClass) {
+      elem.className = `p-3 rounded-xl bg-slate-800 ${textColorClass} border border-slate-700/60`;
+    }
+
+    // ------------------------------------------
+    // TÍNH TOÁN US AQI TỪ NỒNG ĐỘ PM2.5 (EPA Standard)
+    // ------------------------------------------
+    function calculateApproxUsAqi(pm25) {
+      if (pm25 === null || pm25 === undefined || isNaN(pm25)) return 25;
+      const c = parseFloat(pm25);
+      if (c <= 12.0) return Math.round((50 / 12.0) * c);
+      if (c <= 35.4) return Math.round(((100 - 51) / (35.4 - 12.1)) * (c - 12.1) + 51);
+      if (c <= 55.4) return Math.round(((150 - 101) / (55.4 - 35.5)) * (c - 35.5) + 101);
+      if (c <= 150.4) return Math.round(((200 - 151) / (150.4 - 55.5)) * (c - 55.5) + 151);
+      if (c <= 250.4) return Math.round(((300 - 201) / (250.4 - 150.5)) * (c - 150.5) + 201);
+      return Math.min(Math.round(((500 - 301) / (500.4 - 250.5)) * (c - 250.5) + 301), 500);
+    }
+
+    // ------------------------------------------
+    // CÁC SỰ KIỆN TƯƠNG TÁC (SELECT, GPS, REFRESH, MAP STYLE)
+    // ------------------------------------------
+    function initEventListeners() {
+      // 1. Dropdown chọn thành phố
+      const citySelect = document.getElementById('citySelect');
+      citySelect.addEventListener('change', (e) => {
+        const cityKey = e.target.value;
+        selectCity(cityKey);
+      });
+
+      // 2. Nút Vị trí của tôi (GPS)
+      const btnGeo = document.getElementById('btnGeo');
+      btnGeo.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+          showToast('Không hỗ trợ', 'Trình duyệt của bạn không hỗ trợ định vị GPS.', 'error');
+          return;
+        }
+
+        const geoIcon = document.getElementById('geoIcon');
+        geoIcon.classList.add('animate-spin');
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            geoIcon.classList.remove('animate-spin');
+            currentLat = parseFloat(position.coords.latitude.toFixed(4));
+            currentLng = parseFloat(position.coords.longitude.toFixed(4));
+            currentLocationName = "Vị trí của bạn (GPS)";
+
+            citySelect.selectedIndex = -1; // Bỏ chọn dropdown
+            map.flyTo([currentLat, currentLng], 13, { duration: 1.5 });
+            moveActiveMarker(currentLat, currentLng, currentLocationName);
+            fetchFullData(currentLat, currentLng, currentLocationName);
+          },
+          (error) => {
+            geoIcon.classList.remove('animate-spin');
+            console.warn('Lỗi định vị GPS:', error.message);
+            showToast('Không thể lấy GPS', 'Vui lòng cho phép quyền truy cập vị trí trên trình duyệt.', 'error');
+          },
+          { timeout: 10000, enableHighAccuracy: true }
+        );
+      });
+
+      // 3. Nút Refresh
+      const btnRefresh = document.getElementById('btnRefresh');
+      btnRefresh.addEventListener('click', () => {
+        const icon = document.getElementById('refreshIcon');
+        icon.classList.add('animate-spin');
+        fetchFullData(currentLat, currentLng, currentLocationName).finally(() => {
+          setTimeout(() => icon.classList.remove('animate-spin'), 600);
+        });
+      });
+
+      // 4. Nút đổi giao diện bản đồ (Dark / Voyager)
+      const btnMapStyle = document.getElementById('btnMapStyle');
+      const mapStyleLabel = document.getElementById('mapStyleLabel');
+      btnMapStyle.addEventListener('click', () => {
+        isDarkTile = !isDarkTile;
+        map.removeLayer(currentMapTileLayer);
+
+        const newTileUrl = isDarkTile ? TILE_DARK : TILE_VOYAGER;
+        currentMapTileLayer = L.tileLayer(newTileUrl, {
+          attribution: TILE_ATTRIBUTION,
+          subdomains: 'abcd',
+          maxZoom: 19
+        }).addTo(map);
+
+        mapStyleLabel.innerText = isDarkTile ? 'Giao diện Sáng' : 'Giao diện Tối';
+      });
+    }
+
+    // Chọn thành phố từ dropdown hoặc click pin
+    function selectCity(cityKey) {
+      const city = CITIES[cityKey];
+      if (!city) return;
+
+      currentLat = city.lat;
+      currentLng = city.lng;
+      currentLocationName = `${city.name}, Việt Nam`;
+
+      map.flyTo([currentLat, currentLng], 12, { duration: 1.2 });
+      moveActiveMarker(currentLat, currentLng, currentLocationName);
+      fetchFullData(currentLat, currentLng, currentLocationName);
+    }
+
+    // ------------------------------------------
+    // CÁC HÀM TIỆN ÍCH GIAO DIỆN
+    // ------------------------------------------
+    function setLoading(isLoading) {
+      const spinner = document.getElementById('loadingSpinner');
+      if (isLoading) {
+        spinner.classList.remove('hidden');
+      } else {
+        spinner.classList.add('hidden');
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(title, message, type = 'success') {
+      const toast = document.getElementById('toastNotification');
+      const toastTitle = document.getElementById('toastTitle');
+      const toastMessage = document.getElementById('toastMessage');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastTitle.innerText = title;
+      toastMessage.innerText = message;
+
+      if (type === 'success') {
+        toastIcon.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>`;
+      } else {
+        toastIcon.innerHTML = `<i data-lucide="alert-circle" class="w-5 h-5 text-rose-400"></i>`;
+      }
+      lucide.createIcons();
+
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(hideToast, 4000);
+    }
+
+    function hideToast() {
+      const toast = document.getElementById('toastNotification');
+      toast.classList.add('translate-y-24', 'opacity-0');
+      toast.classList.remove('translate-y-0', 'opacity-100');
+    }
+  </script>
+
+</body>
+</html>
