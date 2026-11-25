@@ -64,6 +64,27 @@ Toàn bộ ứng dụng được xây dựng theo kiến trúc Web tĩnh nhẹ, 
 
 ---
 
+### 4. 🚀 Hướng dẫn cài đặt và khởi chạy (Installation)
+* **Yêu cầu hệ thống:** Ứng dụng được xây dựng theo kiến trúc Web tĩnh hiện đại, không cần cài đặt môi trường phức tạp (Node.js/npm) hay cấu hình build step. Tương thích trực tiếp trên mọi trình duyệt web (Google Chrome, Microsoft Edge, Safari, Firefox,...).
+* **Cách 1: Mở và sử dụng trực tiếp (Đơn giản nhất):**
+  1. Tải toàn bộ mã nguồn về máy (hoặc nhấn **Code** > **Download ZIP** trên GitHub rồi giải nén).
+  2. Nhấp đúp chuột vào file `index.html` để mở và trải nghiệm ứng dụng ngay lập tức.
+* **Cách 2: Chạy qua Local Server (Khuyên dùng cho nhà phát triển):**
+  1. Clone dự án về máy tính:
+     ```bash
+     git clone https://github.com/bisadnhan/airlens-vn.git
+     cd airlens-vn
+     ```
+  2. Mở thư mục bằng VS Code và chọn **Open with Live Server**, hoặc khởi chạy máy chủ thử nghiệm nhanh bằng lệnh Python:
+     ```bash
+     python -m http.server 8000
+     ```
+  3. Truy cập trình duyệt theo địa chỉ: `http://localhost:8000`
+* **Cách 3: Trải nghiệm trực tuyến trên GitHub Pages:**
+  * Truy cập đường dẫn demo chính thức: [https://bisadnhan.github.io/airlens-vn/](https://bisadnhan.github.io/airlens-vn/)
+
+---
+
 ## 🛠️ Công nghệ xây dựng
 
 | Thành phần | Công nghệ / Thư viện | Vai trò |
