@@ -50,9 +50,6 @@
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -60,26 +57,25 @@
     }
     
     ::-webkit-scrollbar {
-      width: 7px;
-      height: 7px;
+      width: 6px;
+      height: 6px;
     }
     ::-webkit-scrollbar-track {
       background: #f1f5f9;
     }
     ::-webkit-scrollbar-thumb {
       background: #cbd5e1;
-      border-radius: 6px;
+      border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
 
-    /* Đảm bảo khung Leaflet luôn có chiều cao cố định */
+    /* Đảm bảo khung Leaflet luôn có chiều cao cố định và render đầy đủ */
     #map {
       width: 100%;
       height: 100%;
-      min-height: 440px;
-      border-radius: 1rem;
+      min-height: 480px;
       z-index: 10;
     }
 
@@ -114,43 +110,48 @@
     .leaflet-popup-content-wrapper {
       background-color: #ffffff !important;
       color: #0f172a !important;
-      border-radius: 12px !important;
+      border-radius: 10px !important;
       padding: 4px 6px !important;
-      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15) !important;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12) !important;
       border: 1px solid #e2e8f0 !important;
     }
     .leaflet-popup-tip {
       background-color: #ffffff !important;
     }
 
-    /* Tab active styles */
-    .nav-tab.active {
-      background-color: #0284c7;
-      color: #ffffff;
-      box-shadow: 0 4px 12px -2px rgba(2, 132, 199, 0.35);
+    /* Tab item unified segment styles */
+    .tab-item {
+      color: #64748b;
+      transition: all 0.15s ease-in-out;
     }
-    .nav-tab.active i {
-      color: #ffffff !important;
+    .tab-item:hover {
+      color: #0f172a;
+    }
+    .tab-item.active {
+      background-color: #ffffff;
+      color: #0284c7;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
+      font-weight: 700;
     }
   </style>
 </head>
 
-<body class="bg-gradient-to-br from-slate-50 via-sky-50/40 to-slate-100 text-slate-800 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col selection:bg-sky-500 selection:text-white">
 
   <!-- ========================================== -->
-  <!-- 1. TOP NAVIGATION BAR                      -->
+  <!-- 1. TOP NAVIGATION BAR (TỐI GIẢN, CHUYÊN NGHIỆP) -->
   <!-- ========================================== -->
-  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
       
-      <!-- Logo & Tiêu đề -->
+      <!-- Logo & Tên dự án -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-emerald-500 flex items-center justify-center shadow-md shadow-sky-500/20 text-white">
-          <i data-lucide="wind" class="w-5 h-5"></i>
+        <div class="w-9 h-9 rounded-lg bg-sky-600 flex items-center justify-center text-white font-black text-sm tracking-tighter shadow-xs">
+          AL
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-black text-lg sm:text-xl tracking-tight text-slate-900">
+            <h1 class="font-bold text-lg tracking-tight text-slate-900">
               AirLens <span class="text-sky-600">VN</span>
             </h1>
             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -158,65 +159,64 @@
               Live API
             </span>
           </div>
-          <p class="text-[11px] text-slate-500 hidden sm:block">Giám sát vi khí hậu & sức khỏe đô thị Việt Nam</p>
+          <p class="text-[11px] text-slate-500 hidden sm:block">Giám sát vi khí hậu & chất lượng không khí đô thị</p>
         </div>
       </div>
 
-      <!-- Controls: Chọn đô thị khắp VN, GPS, Refresh -->
+      <!-- Controls: Chọn vị trí, GPS, Refresh -->
       <div class="flex items-center gap-2 sm:gap-3">
         
-        <!-- Dropdown chọn nhanh 25+ tỉnh thành -->
+        <!-- Dropdown chọn vị trí 25+ tỉnh thành -->
         <div class="relative">
-          <select id="citySelect" class="bg-slate-100 hover:bg-slate-200/80 text-slate-800 text-xs sm:text-sm font-medium rounded-lg pl-3 pr-8 py-2 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 appearance-none cursor-pointer transition shadow-xs max-w-[150px] sm:max-w-[210px] truncate">
-            <optgroup label="🌟 Miền Trung & Tây Nguyên">
-              <option value="danang" selected>📍 Đà Nẵng</option>
-              <option value="hue">📍 Thừa Thiên Huế</option>
-              <option value="nhatrang">📍 Nha Trang (Khánh Hòa)</option>
-              <option value="dalat">📍 Đà Lạt (Lâm Đồng)</option>
-              <option value="quynhon">📍 Quy Nhơn (Bình Định)</option>
-              <option value="phanthiet">📍 Phan Thiết (Bình Thuận)</option>
-              <option value="pleiku">📍 Pleiku (Gia Lai)</option>
-              <option value="buonmathuot">📍 Buôn Ma Thuột (Đắk Lắk)</option>
-              <option value="vinh">📍 TP. Vinh (Nghệ An)</option>
-              <option value="quangbinh">📍 Đồng Hới (Quảng Bình)</option>
+          <select id="citySelect" class="bg-slate-100 hover:bg-slate-200/70 text-slate-800 text-xs sm:text-sm font-medium rounded-lg pl-3 pr-7 py-2 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 appearance-none cursor-pointer transition shadow-2xs max-w-[150px] sm:max-w-[210px] truncate">
+            <optgroup label="Miền Trung & Tây Nguyên">
+              <option value="danang" selected>Đà Nẵng</option>
+              <option value="hue">Thừa Thiên Huế</option>
+              <option value="nhatrang">Nha Trang (Khánh Hòa)</option>
+              <option value="dalat">Đà Lạt (Lâm Đồng)</option>
+              <option value="quynhon">Quy Nhơn (Bình Định)</option>
+              <option value="phanthiet">Phan Thiết (Bình Thuận)</option>
+              <option value="pleiku">Pleiku (Gia Lai)</option>
+              <option value="buonmathuot">Buôn Ma Thuột (Đắk Lắk)</option>
+              <option value="vinh">TP. Vinh (Nghệ An)</option>
+              <option value="quangbinh">Đồng Hới (Quảng Bình)</option>
             </optgroup>
-            <optgroup label="🏛️ Miền Bắc">
-              <option value="hanoi">📍 Hà Nội (Thủ đô)</option>
-              <option value="haiphong">📍 Hải Phòng</option>
-              <option value="quangninh">📍 Hạ Long (Quảng Ninh)</option>
-              <option value="sapa">📍 Sa Pa (Lào Cai)</option>
-              <option value="ninhbinh">📍 Ninh Bình</option>
-              <option value="bacninh">📍 Bắc Ninh</option>
-              <option value="thainguyen">📍 Thái Nguyên</option>
-              <option value="haiduong">📍 Hải Dương</option>
-              <option value="langson">📍 Lạng Sơn</option>
+            <optgroup label="Miền Bắc">
+              <option value="hanoi">Hà Nội (Thủ đô)</option>
+              <option value="haiphong">Hải Phòng</option>
+              <option value="quangninh">Hạ Long (Quảng Ninh)</option>
+              <option value="sapa">Sa Pa (Lào Cai)</option>
+              <option value="ninhbinh">Ninh Bình</option>
+              <option value="bacninh">Bắc Ninh</option>
+              <option value="thainguyen">Thái Nguyên</option>
+              <option value="haiduong">Hải Dương</option>
+              <option value="langson">Lạng Sơn</option>
             </optgroup>
-            <optgroup label="🌴 Miền Nam">
-              <option value="hcm">📍 TP. Hồ Chí Minh</option>
-              <option value="cantho">📍 Cần Thơ</option>
-              <option value="vungtau">📍 Vũng Tàu</option>
-              <option value="phuquoc">📍 Đảo Phú Quốc (Kiên Giang)</option>
-              <option value="binhduong">📍 Thủ Dầu Một (Bình Dương)</option>
-              <option value="dongnai">📍 Biên Hòa (Đồng Nai)</option>
-              <option value="longan">📍 Tân An (Long An)</option>
-              <option value="mytho">📍 Mỹ Tho (Tiền Giang)</option>
-              <option value="camau">📍 TP. Cà Mau</option>
+            <optgroup label="Miền Nam">
+              <option value="hcm">TP. Hồ Chí Minh</option>
+              <option value="cantho">Cần Thơ</option>
+              <option value="vungtau">Vũng Tàu</option>
+              <option value="phuquoc">Đảo Phú Quốc</option>
+              <option value="binhduong">Thủ Dầu Một (Bình Dương)</option>
+              <option value="dongnai">Biên Hòa (Đồng Nai)</option>
+              <option value="longan">Tân An (Long An)</option>
+              <option value="mytho">Mỹ Tho (Tiền Giang)</option>
+              <option value="camau">TP. Cà Mau</option>
             </optgroup>
           </select>
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500 text-xs">
+            ▼
           </div>
         </div>
 
-        <!-- Nút Vị trí của tôi (GPS) -->
-        <button id="btnGeo" class="inline-flex items-center gap-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs sm:text-sm font-semibold rounded-lg px-3 py-2 border border-sky-200 transition shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-500">
-          <i data-lucide="crosshair" class="w-4 h-4 text-sky-600" id="geoIcon"></i>
-          <span class="hidden md:inline">Vị trí của tôi</span>
+        <!-- Nút Định vị GPS -->
+        <button id="btnGeo" class="inline-flex items-center bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs sm:text-sm font-semibold rounded-lg px-3 py-2 border border-slate-300 transition shadow-2xs focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <span id="geoText">Định vị GPS</span>
         </button>
 
         <!-- Nút Refresh -->
-        <button id="btnRefresh" title="Làm mới dữ liệu" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 transition">
-          <i data-lucide="refresh-cw" class="w-4 h-4" id="refreshIcon"></i>
+        <button id="btnRefresh" title="Làm mới dữ liệu" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200/80 text-slate-700 rounded-lg border border-slate-300 transition text-xs font-semibold">
+          Làm mới
         </button>
 
       </div>
@@ -225,55 +225,45 @@
   </header>
 
   <!-- ========================================== -->
-  <!-- BANNER THỜI GIAN THỰC (LIVE CLOCK BANNER)  -->
+  <!-- BANNER THỜI GIAN THỰC (TỐI GIẢN)          -->
   <!-- ========================================== -->
-  <section class="bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600 text-white shadow-inner">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
+  <section class="bg-slate-900 text-slate-200 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center justify-between gap-3 text-xs">
       
       <!-- Đồng hồ Live Clock -->
       <div class="flex items-center gap-2">
-        <i data-lucide="clock" class="w-4 h-4 text-sky-200 animate-pulse"></i>
-        <span class="font-medium text-sky-100">Thời gian hiện tại:</span>
-        <span id="liveClock" class="font-bold tracking-wide bg-white/15 px-2.5 py-0.5 rounded-md backdrop-blur-sm">Đang đồng bộ...</span>
-        <span class="text-[11px] text-sky-200 hidden md:inline">(Múi giờ Việt Nam GMT+7)</span>
+        <span class="text-slate-400">Thời gian:</span>
+        <span id="liveClock" class="font-bold text-white tracking-wide">Đang đồng bộ...</span>
+        <span class="text-slate-500 hidden md:inline">(GMT+7)</span>
       </div>
 
       <!-- Thời điểm cập nhật trạm quan trắc -->
       <div class="flex items-center gap-2">
-        <i data-lucide="radio" class="w-4 h-4 text-emerald-200"></i>
-        <span class="text-sky-100">Cập nhật trạm:</span>
-        <span id="lastUpdated" class="font-semibold bg-white/20 px-2 py-0.5 rounded text-white">Đang tải...</span>
+        <span class="text-slate-400">Cập nhật trạm:</span>
+        <span id="lastUpdated" class="font-semibold text-slate-200">Đang tải...</span>
       </div>
 
     </div>
   </section>
 
   <!-- ========================================== -->
-  <!-- THANH TÍNH NĂNG CHÍNH (FEATURE NAVIGATION) -->
+  <!-- THANH TÍNH NĂNG NGUYÊN KHỐI (UNIFIED BAR)  -->
   <!-- ========================================== -->
-  <nav class="bg-white border-b border-slate-200 sticky top-16 z-40 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-start sm:justify-center gap-2 py-2 overflow-x-auto no-scrollbar">
-        
-        <!-- Tab 1: Xem Hôm Nay -->
-        <button id="tabBtnToday" onclick="switchTab('today')" class="nav-tab active flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all shrink-0">
-          <i data-lucide="sun-medium" class="w-4 h-4 text-amber-500"></i>
-          <span>Xem Hôm nay</span>
-        </button>
-
-        <!-- Tab 2: Xem theo Tháng (Calendar) -->
-        <button id="tabBtnCalendar" onclick="switchTab('calendar')" class="nav-tab flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all shrink-0">
-          <i data-lucide="calendar" class="w-4 h-4 text-sky-600"></i>
-          <span>Lịch theo dõi Tháng</span>
-          <span class="px-1.5 py-0.2 rounded text-[10px] bg-sky-100 text-sky-700 font-semibold">Mới</span>
-        </button>
-
-        <!-- Tab 3: Sức Khỏe & Hoạt Động -->
-        <button id="tabBtnHealth" onclick="switchTab('health')" class="nav-tab flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all shrink-0">
-          <i data-lucide="heart-pulse" class="w-4 h-4 text-rose-500"></i>
-          <span>Sức khỏe & Hoạt động</span>
-        </button>
-
+  <nav class="bg-white border-b border-slate-200 sticky top-16 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
+      <div class="flex items-center justify-center">
+        <!-- Thanh bar liền mạch duy nhất (Segmented Bar) -->
+        <div class="inline-flex w-full sm:w-auto p-1 bg-slate-100 border border-slate-200/90 rounded-xl" role="tablist">
+          <button id="tabBtnToday" onclick="switchTab('today')" class="tab-item active flex-1 sm:flex-initial px-6 py-2 text-xs sm:text-sm font-semibold rounded-lg">
+            Hôm nay
+          </button>
+          <button id="tabBtnCalendar" onclick="switchTab('calendar')" class="tab-item flex-1 sm:flex-initial px-6 py-2 text-xs sm:text-sm font-semibold rounded-lg">
+            Lịch theo dõi
+          </button>
+          <button id="tabBtnHealth" onclick="switchTab('health')" class="tab-item flex-1 sm:flex-initial px-6 py-2 text-xs sm:text-sm font-semibold rounded-lg">
+            Sức khỏe &amp; Hoạt động
+          </button>
+        </div>
       </div>
     </div>
   </nav>
@@ -281,16 +271,13 @@
   <!-- ========================================== -->
   <!-- TOAST THÔNG BÁO                           -->
   <!-- ========================================== -->
-  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 max-w-sm bg-white border border-slate-200 text-slate-800 p-4 rounded-xl shadow-2xl flex items-start gap-3">
-    <div id="toastIcon" class="mt-0.5 text-emerald-600">
-      <i data-lucide="check-circle" class="w-5 h-5"></i>
-    </div>
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 max-w-sm bg-white border border-slate-200 text-slate-800 p-4 rounded-xl shadow-xl flex items-start gap-3">
     <div class="flex-1 text-sm">
-      <p id="toastTitle" class="font-semibold text-slate-900">Thông báo</p>
+      <p id="toastTitle" class="font-bold text-slate-900">Thông báo</p>
       <p id="toastMessage" class="text-slate-500 text-xs mt-0.5">Dữ liệu đã được cập nhật thành công.</p>
     </div>
-    <button onclick="hideToast()" class="text-slate-400 hover:text-slate-600">
-      <i data-lucide="x" class="w-4 h-4"></i>
+    <button onclick="hideToast()" class="text-slate-400 hover:text-slate-600 text-xs font-bold">
+      ✕
     </button>
   </div>
 
@@ -304,17 +291,16 @@
     <!-- ======================================================== -->
     <div id="view-today" class="space-y-6">
 
-      <!-- Grid 2 cột: Trái (~60%) Bản đồ, Phải (~40%) Dữ liệu vi khí hậu -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Grid 2 cột: CĂN CHỈNH items-stretch ĐỂ LỀ DƯỚI 2 KHUNG BẰNG NHAU HOÀN TOÀN -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
-        <!-- CỘT TRÁI: BẢN ĐỒ TƯƠNG TÁC ĐỔI MÀU THEO KHÔNG KHÍ (7/12) -->
-        <div class="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs flex flex-col">
+        <!-- CỘT TRÁI: BẢN ĐỒ VI KHÍ HẬU (CHIẾM 7/12, TỰ CO GIÃN THEO KHUNG PHẢI) -->
+        <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs flex flex-col h-full">
           
           <!-- Header bản đồ -->
-          <div class="p-3.5 sm:p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <div class="p-3.5 sm:p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
             <div class="flex items-center gap-2">
-              <i data-lucide="map" class="w-4 h-4 text-sky-600"></i>
-              <span class="font-bold text-sm text-slate-800">Bản đồ Giám sát Không gian Mở</span>
+              <span class="font-bold text-sm text-slate-800">Bản đồ Giám sát Vi khí hậu</span>
               <!-- Badge đổi màu theo vùng AQI -->
               <span id="mapAqiBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
                 ● Vùng Không khí Tốt
@@ -322,26 +308,24 @@
             </div>
 
             <div class="flex items-center gap-2">
-              <button id="btnMapStyle" class="text-xs bg-white hover:bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md border border-slate-300 font-medium transition flex items-center gap-1.5 shadow-xs">
-                <i data-lucide="layers" class="w-3.5 h-3.5 text-sky-600"></i>
+              <button id="btnMapStyle" class="text-xs bg-white hover:bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md border border-slate-300 font-medium transition shadow-2xs">
                 <span id="mapStyleLabel">Đổi Bản đồ Chi tiết</span>
               </button>
               <span class="text-[11px] text-slate-500 font-mono bg-slate-200/60 px-2 py-0.5 rounded" id="currentCoordDisplay">16.054, 108.202</span>
             </div>
           </div>
 
-          <!-- Khung chứa Leaflet Map -->
-          <div class="relative w-full h-[380px] sm:h-[460px] lg:h-[580px] bg-slate-100" id="mapContainer">
+          <!-- Khung chứa Leaflet Map: flex-1 để lấp đầy toàn bộ chiều cao khung trái -->
+          <div class="relative w-full flex-1 min-h-[480px] bg-slate-100" id="mapContainer">
             <div id="map"></div>
             
-            <!-- Chú giải thang màu AQI nổi trên góc bản đồ -->
+            <!-- Chú giải thang màu AQI nổi góc trên bản đồ -->
             <div class="absolute top-3 right-3 z-[400] bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl p-2.5 shadow-md text-[11px] font-medium text-slate-700 hidden sm:block">
-              <div class="font-bold text-slate-800 mb-1.5 flex items-center gap-1.5 border-b border-slate-100 pb-1">
-                <span class="w-2.5 h-2.5 rounded-full animate-pulse" id="mapLegendIndicator" style="background:#10b981;"></span>
-                <span>Thang màu Không khí:</span>
+              <div class="font-bold text-slate-800 mb-1.5 border-b border-slate-100 pb-1">
+                Thang đo chất lượng:
               </div>
               <div class="space-y-1">
-                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>&le; 50: Tốt (Trong lành)</span></div>
+                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>&le; 50: Tốt</span></div>
                 <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span>51 - 100: Trung bình</span></div>
                 <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span><span>101 - 150: Nhạy cảm</span></div>
                 <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span><span>&gt; 150: Nguy hại</span></div>
@@ -349,50 +333,47 @@
             </div>
 
             <!-- Hướng dẫn click nổi góc dưới bản đồ -->
-            <div class="absolute bottom-3 left-3 z-[400] bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 shadow-md flex items-center gap-2 pointer-events-none">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-              <span class="font-medium">Chạm/Click vào điểm bất kỳ trên lãnh thổ để đo vi khí hậu</span>
+            <div class="absolute bottom-3 left-3 z-[400] bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 shadow-sm flex items-center gap-2 pointer-events-none">
+              <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+              <span class="font-medium">Chạm hoặc click điểm bất kỳ trên bản đồ để đo</span>
             </div>
           </div>
 
         </div>
 
-        <!-- CỘT PHẢI: BẢNG DỮ LIỆU VI KHÍ HẬU (5/12) -->
-        <div class="lg:col-span-5 space-y-4">
+        <!-- CỘT PHẢI: BẢNG DỮ LIỆU VI KHÍ HẬU (CHIẾM 5/12) -->
+        <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
 
           <!-- THÔNG TIN VỊ TRÍ ĐANG ĐO -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs flex items-center justify-between">
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex items-center justify-between">
             <div>
               <div class="flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full bg-emerald-500" id="locationStatusDot"></span>
-                <h2 id="locationName" class="text-lg font-extrabold text-slate-900 tracking-tight">Đà Nẵng, Việt Nam</h2>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500" id="locationStatusDot"></span>
+                <h2 id="locationName" class="text-lg font-bold text-slate-900 tracking-tight">Đà Nẵng, Việt Nam</h2>
               </div>
               <p id="locationSub" class="text-xs text-slate-500 mt-1">Tọa độ: 16.054°N, 108.202°E • Thời gian đo: <span id="locationTime">Đang kết nối...</span></p>
             </div>
-            <!-- Loader indicator -->
-            <div id="loadingSpinner" class="hidden">
-              <i data-lucide="loader-2" class="w-5 h-5 text-sky-600 animate-spin"></i>
+            <div id="loadingSpinner" class="hidden text-xs font-semibold text-sky-600">
+              Đang tải...
             </div>
           </div>
 
-          <!-- CARD AQI CHÍNH (THEME SÁNG DỄ NHÌN, TỰ ĐỔI MÀU) -->
+          <!-- CARD AQI CHÍNH -->
           <div id="aqiCard" class="relative overflow-hidden rounded-2xl p-5 border transition-all duration-500 shadow-xs bg-gradient-to-br from-emerald-50 via-white to-emerald-50/30 border-emerald-300">
             
             <div class="flex items-start justify-between">
               <div>
-                <span class="text-xs font-bold tracking-wider uppercase text-slate-600 flex items-center gap-1.5">
-                  <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600" id="aqiStatusIcon"></i>
+                <span class="text-[11px] font-bold tracking-wider uppercase text-slate-500">
                   Chỉ số Chất lượng Không khí (AQI)
                 </span>
                 <div class="mt-2 flex items-baseline gap-3">
                   <span id="aqiValue" class="text-5xl sm:text-6xl font-black tracking-tight text-slate-900">--</span>
-                  <span class="text-xs font-semibold text-slate-500">Thang đo US AQI</span>
+                  <span class="text-xs font-medium text-slate-500">Chuẩn US EPA</span>
                 </div>
               </div>
 
               <!-- Badge trạng thái AQI -->
-              <div id="aqiBadge" class="px-3.5 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+              <div id="aqiBadge" class="px-3 py-1 rounded-lg font-bold text-xs bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
                 <span id="aqiStatusText">Đang tải...</span>
               </div>
             </div>
@@ -412,11 +393,11 @@
                 <span>200</span>
                 <span>300+</span>
               </div>
-              <div class="relative w-full h-2.5 rounded-full bg-gradient-to-r from-emerald-400 via-amber-400 via-orange-500 via-rose-500 to-purple-600 overflow-hidden shadow-inner"></div>
-              <!-- Vị trí kim chỉ thị -->
+              <div class="relative w-full h-2 rounded-full bg-gradient-to-r from-emerald-400 via-amber-400 via-orange-500 via-rose-500 to-purple-600 overflow-hidden shadow-inner"></div>
+              <!-- Kim chỉ thị -->
               <div class="relative w-full h-1 mt-0.5">
-                <div id="aqiIndicatorPin" class="absolute -top-3.5 -ml-1.5 text-slate-800 transition-all duration-500" style="left: 10%;">
-                  <i data-lucide="triangle" class="w-3.5 h-3.5 fill-slate-800 rotate-180"></i>
+                <div id="aqiIndicatorPin" class="absolute -top-3 -ml-1 text-slate-800 text-[10px] font-black transition-all duration-500" style="left: 10%;">
+                  ▲
                 </div>
               </div>
             </div>
@@ -426,86 +407,63 @@
           <div class="grid grid-cols-2 gap-3">
 
             <!-- PM2.5 -->
-            <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 hover:shadow-md transition shadow-xs">
-              <div class="flex items-center justify-between text-slate-600">
-                <span class="text-xs font-semibold">Bụi mịn PM2.5</span>
-                <div class="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600">
-                  <i data-lucide="cloud-fog" class="w-4 h-4"></i>
-                </div>
-              </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs">
+              <span class="text-xs font-semibold text-slate-500">Bụi mịn PM2.5</span>
               <div class="mt-2 flex items-baseline gap-1">
                 <span id="valPm25" class="text-2xl font-black text-slate-900">--</span>
                 <span class="text-xs text-slate-500 font-medium">μg/m³</span>
               </div>
               <div class="mt-1 flex items-center justify-between text-[11px]">
-                <span class="text-slate-500">WHO: &le; 15</span>
+                <span class="text-slate-400">WHO: &le; 15</span>
                 <span id="badgePm25" class="text-emerald-600 font-bold">Bình thường</span>
               </div>
             </div>
 
             <!-- PM10 -->
-            <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 hover:shadow-md transition shadow-xs">
-              <div class="flex items-center justify-between text-slate-600">
-                <span class="text-xs font-semibold">Bụi thô PM10</span>
-                <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
-                  <i data-lucide="wind" class="w-4 h-4"></i>
-                </div>
-              </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs">
+              <span class="text-xs font-semibold text-slate-500">Bụi thô PM10</span>
               <div class="mt-2 flex items-baseline gap-1">
                 <span id="valPm10" class="text-2xl font-black text-slate-900">--</span>
                 <span class="text-xs text-slate-500 font-medium">μg/m³</span>
               </div>
               <div class="mt-1 flex items-center justify-between text-[11px]">
-                <span class="text-slate-500">WHO: &le; 45</span>
+                <span class="text-slate-400">WHO: &le; 45</span>
                 <span id="badgePm10" class="text-emerald-600 font-bold">Bình thường</span>
               </div>
             </div>
 
             <!-- Nhiệt độ -->
-            <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 hover:shadow-md transition shadow-xs">
-              <div class="flex items-center justify-between text-slate-600">
-                <span class="text-xs font-semibold">Nhiệt độ</span>
-                <div class="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
-                  <i data-lucide="thermometer" class="w-4 h-4"></i>
-                </div>
-              </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs">
+              <span class="text-xs font-semibold text-slate-500">Nhiệt độ</span>
               <div class="mt-2 flex items-baseline gap-1">
                 <span id="valTemp" class="text-2xl font-black text-slate-900">--</span>
                 <span class="text-xs text-slate-500 font-medium">°C</span>
               </div>
               <div class="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
-                <span>Cảm nhận</span>
+                <span class="text-slate-400">Cảm nhận</span>
                 <span id="tempDesc" class="text-slate-800 font-bold">Mát mẻ</span>
               </div>
             </div>
 
             <!-- Độ ẩm -->
-            <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 hover:shadow-md transition shadow-xs">
-              <div class="flex items-center justify-between text-slate-600">
-                <span class="text-xs font-semibold">Độ ẩm</span>
-                <div class="w-7 h-7 rounded-lg bg-sky-50 flex items-center justify-center text-sky-600">
-                  <i data-lucide="droplets" class="w-4 h-4"></i>
-                </div>
-              </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs">
+              <span class="text-xs font-semibold text-slate-500">Độ ẩm</span>
               <div class="mt-2 flex items-baseline gap-1">
                 <span id="valHumidity" class="text-2xl font-black text-slate-900">--</span>
                 <span class="text-xs text-slate-500 font-medium">%</span>
               </div>
               <div class="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
-                <span>Không khí</span>
+                <span class="text-slate-400">Không khí</span>
                 <span id="humDesc" class="text-slate-800 font-bold">Dễ chịu</span>
               </div>
             </div>
 
           </div>
 
-          <!-- BIỂU ĐỒ XU HƯỚNG 24H (CHART.JS NỀN SÁNG) -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <i data-lucide="trending-up" class="w-4 h-4 text-sky-600"></i>
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Diễn biến PM2.5 trong 24 Giờ</span>
-              </div>
+          <!-- BIỂU ĐỒ XU HƯỚNG 24H (CHART.JS) -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Diễn biến PM2.5 trong 24 Giờ</span>
               <span class="text-[11px] text-slate-500 font-medium">Hôm nay</span>
             </div>
             <div class="relative w-full h-[180px]">
@@ -518,43 +476,25 @@
       </div>
 
       <!-- Tóm tắt khuyến nghị nhanh ở trang Hôm nay -->
-      <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
         <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i>
-            <h3 class="font-extrabold text-base text-slate-900 tracking-tight">Khuyến nghị Nhanh Hôm nay</h3>
-          </div>
-          <button onclick="switchTab('health')" class="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1">
-            Xem cẩm nang chi tiết &rarr;
+          <h3 class="font-bold text-sm text-slate-900 uppercase tracking-wider">Khuyến nghị Hành động Đô thị Hôm nay</h3>
+          <button onclick="switchTab('health')" class="text-xs font-bold text-sky-600 hover:text-sky-700">
+            Xem hướng dẫn chi tiết &rarr;
           </button>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3">
-            <div class="p-2 rounded-lg bg-emerald-100 text-emerald-700 shrink-0">
-              <i data-lucide="bike" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <p class="text-xs font-bold text-slate-800">Di chuyển đô thị</p>
-              <p id="recTextCommute" class="text-xs text-slate-600 mt-0.5">Không khí trong lành, thuận tiện cho đi bộ và xe đạp.</p>
-            </div>
+          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">[Di chuyển]</span>
+            <p id="recTextCommute" class="text-xs text-slate-700 mt-1 font-medium leading-relaxed">Không khí trong lành, thuận tiện cho đi bộ và xe đạp.</p>
           </div>
-          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3">
-            <div class="p-2 rounded-lg bg-emerald-100 text-emerald-700 shrink-0">
-              <i data-lucide="activity" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <p class="text-xs font-bold text-slate-800">Thể thao ngoài trời</p>
-              <p id="recTextSport" class="text-xs text-slate-600 mt-0.5">Lý tưởng để tập thể dục, chạy bộ ngoài trời.</p>
-            </div>
+          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">[Thể thao]</span>
+            <p id="recTextSport" class="text-xs text-slate-700 mt-1 font-medium leading-relaxed">Lý tưởng để tập thể dục, chạy bộ ngoài trời.</p>
           </div>
-          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3">
-            <div class="p-2 rounded-lg bg-emerald-100 text-emerald-700 shrink-0">
-              <i data-lucide="wind" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <p class="text-xs font-bold text-slate-800">Không gian sống</p>
-              <p id="recTextHome" class="text-xs text-slate-600 mt-0.5">Nên mở cửa sổ đón gió tươi tự nhiên.</p>
-            </div>
+          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">[Nhà ở]</span>
+            <p id="recTextHome" class="text-xs text-slate-700 mt-1 font-medium leading-relaxed">Nên mở cửa sổ đón gió tươi tự nhiên.</p>
           </div>
         </div>
       </div>
@@ -567,27 +507,19 @@
     <div id="view-calendar" class="hidden space-y-6">
 
       <!-- Header điều hướng Lịch Tháng -->
-      <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
-              <i data-lucide="calendar" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight" id="calendarMonthTitle">Lịch Chất lượng Không khí & Vi khí hậu</h2>
-              <p class="text-xs text-slate-500 mt-0.5" id="calendarLocationSub">Đang xem tại: Đà Nẵng, Việt Nam</p>
-            </div>
-          </div>
+          <h2 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight" id="calendarMonthTitle">Lịch Chất lượng Không khí &amp; Vi khí hậu</h2>
+          <p class="text-xs text-slate-500 mt-0.5" id="calendarLocationSub">Đang xem tại: Đà Nẵng, Việt Nam</p>
         </div>
 
-        <!-- Điều hướng Tháng trước / Tháng sau & Thống kê nhanh -->
         <div class="flex items-center gap-2">
-          <button onclick="changeMonth(-1)" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
-            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          <button onclick="changeMonth(-1)" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+            &larr; Tháng trước
           </button>
           <span id="currentMonthYearLabel" class="text-sm font-bold text-slate-800 px-3 py-1.5 bg-slate-100 rounded-lg">Tháng 11 / 2026</span>
-          <button onclick="changeMonth(1)" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
-            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          <button onclick="changeMonth(1)" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+            Tháng sau &rarr;
           </button>
         </div>
       </div>
@@ -595,47 +527,35 @@
       <!-- Thống kê tổng kết tháng -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs">
-          <div class="flex items-center gap-2 text-emerald-700">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span class="text-xs font-bold uppercase">Ngày Không khí Tốt</span>
-          </div>
+          <span class="text-xs font-bold text-emerald-700 uppercase">Ngày Không khí Tốt</span>
           <p class="text-2xl font-black text-slate-900 mt-2" id="statGoodDays">-- <span class="text-xs font-normal text-slate-500">ngày</span></p>
           <p class="text-[11px] text-slate-500 mt-0.5">AQI &le; 50</p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs">
-          <div class="flex items-center gap-2 text-amber-700">
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            <span class="text-xs font-bold uppercase">Ngày Trung bình</span>
-          </div>
+          <span class="text-xs font-bold text-amber-700 uppercase">Ngày Trung bình</span>
           <p class="text-2xl font-black text-slate-900 mt-2" id="statModDays">-- <span class="text-xs font-normal text-slate-500">ngày</span></p>
           <p class="text-[11px] text-slate-500 mt-0.5">AQI 51 - 100</p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs">
-          <div class="flex items-center gap-2 text-orange-700">
-            <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
-            <span class="text-xs font-bold uppercase">Ngày Nhạy cảm</span>
-          </div>
+          <span class="text-xs font-bold text-orange-700 uppercase">Ngày Nhạy cảm</span>
           <p class="text-2xl font-black text-slate-900 mt-2" id="statSensDays">-- <span class="text-xs font-normal text-slate-500">ngày</span></p>
           <p class="text-[11px] text-slate-500 mt-0.5">AQI 101 - 150</p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-xs">
-          <div class="flex items-center gap-2 text-rose-700">
-            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-            <span class="text-xs font-bold uppercase">Ngày Ô nhiễm</span>
-          </div>
+          <span class="text-xs font-bold text-rose-700 uppercase">Ngày Ô nhiễm</span>
           <p class="text-2xl font-black text-slate-900 mt-2" id="statUnhealthDays">-- <span class="text-xs font-normal text-slate-500">ngày</span></p>
           <p class="text-[11px] text-slate-500 mt-0.5">AQI &gt; 150</p>
         </div>
       </div>
 
       <!-- Khung Lưới Calendar -->
-      <div class="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-6 shadow-xs overflow-hidden">
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs overflow-hidden">
         
         <!-- Hàng Thứ trong tuần -->
-        <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs font-extrabold text-slate-500 pb-2 border-b border-slate-200 mb-2">
+        <div class="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs font-bold text-slate-500 pb-2 border-b border-slate-200 mb-2">
           <span>Thứ 2</span>
           <span>Thứ 3</span>
           <span>Thứ 4</span>
@@ -653,19 +573,19 @@
         <!-- Chú giải màu sắc dưới chân lịch -->
         <div class="mt-5 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-600">
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
             <span>Tốt (&le; 50)</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
             <span>Trung bình (51-100)</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
             <span>Kém / Nhạy cảm (101-150)</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
             <span>Nguy hại (&gt; 150)</span>
           </div>
         </div>
@@ -676,11 +596,11 @@
       <div id="selectedDayDetailCard" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Chi tiết ngày được chọn:</span>
-            <span id="detailDayLabel" class="text-sm font-extrabold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-lg border border-sky-200">25/11/2026</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Ngày được chọn:</span>
+            <span id="detailDayLabel" class="text-sm font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">25/11/2026</span>
           </div>
-          <h3 id="detailDayStatus" class="text-base sm:text-lg font-bold text-slate-900 mt-1">Chất lượng không khí ở mức Tốt</h3>
-          <p id="detailDayDesc" class="text-xs text-slate-600 mt-0.5">Không khí trong lành, rất thích hợp cho các hoạt động thể thao ngoài trời và dã ngoại.</p>
+          <h3 id="detailDayStatus" class="text-base font-bold text-slate-900 mt-1">Chất lượng không khí ở mức Tốt</h3>
+          <p id="detailDayDesc" class="text-xs text-slate-600 mt-0.5">Không khí trong lành, rất thích hợp cho các hoạt động thể thao ngoài trời.</p>
         </div>
 
         <div class="flex items-center gap-4 shrink-0">
@@ -702,19 +622,19 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- TAB 3: SỨC KHỎE & HOẠT ĐỘNG (HEALTH & ACTIVITIES GUIDE)    -->
+    <!-- TAB 3: SỨC KHỎE & HOẠT ĐỘNG (TỐI GIẢN, CHUYÊN NGHIỆP)    -->
     <!-- ======================================================== -->
     <div id="view-health" class="hidden space-y-6">
 
       <!-- Header Sức Khỏe -->
-      <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl p-6 sm:p-8 shadow-sm">
+      <div class="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-xs">
         <div class="max-w-3xl">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/20 backdrop-blur-md mb-3">
-            ❤️ Cẩm nang Bảo vệ Sức khỏe Đô thị
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-800 text-sky-400 border border-slate-700 mb-3">
+            Cẩm nang Hô hấp Đô thị
           </span>
-          <h2 class="text-2xl sm:text-3xl font-black tracking-tight">Chăm sóc Hô hấp & Kế hoạch Sinh hoạt Thông minh</h2>
-          <p class="text-sm text-emerald-100 mt-2 leading-relaxed">
-            Bụi mịn PM2.5 có kích thước siêu nhỏ (bằng 1/30 sợi tóc), có thể xâm nhập sâu vào phế nang phổi và đi vào máu. Hãy tra cứu khuyến nghị khoa học theo từng nhóm đối tượng bên dưới.
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Kế hoạch Sinh hoạt &amp; Bảo vệ Sức khỏe Cộng đồng</h2>
+          <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+            Bụi mịn PM2.5 có kích thước siêu nhỏ, có thể xâm nhập sâu vào phế nang phổi và đi vào máu. Hãy theo dõi các khuyến cáo khoa học theo từng nhóm đối tượng bên dưới.
           </p>
         </div>
       </div>
@@ -722,101 +642,73 @@
       <!-- 4 Nhóm đối tượng đô thị -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         
-        <!-- Nhóm 1: Thể thao ngoài trời & Runners -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-md transition">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">
-              <i data-lucide="activity" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <h3 class="font-extrabold text-base text-slate-900">Vận động viên & Thể thao ngoài trời</h3>
-              <p class="text-xs text-slate-500">Chạy bộ, đạp xe, đá bóng, cầu lông</p>
-            </div>
-          </div>
+        <!-- Nhóm 1: Thể thao ngoài trời -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+          <h3 class="font-bold text-base text-slate-900 mb-1">Vận động viên &amp; Thể thao ngoài trời</h3>
+          <p class="text-xs text-slate-500 mb-3">Chạy bộ, đạp xe, vận động cường độ cao</p>
           <ul class="text-xs text-slate-700 space-y-2.5 leading-relaxed">
             <li class="flex items-start gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
+              <span class="text-sky-600 font-bold">•</span>
               <span><strong>Khung giờ vàng:</strong> Nên tập vào 5h30 – 7h00 sáng hoặc sau 17h30 tại các công viên nhiều cây xanh. Tránh tập gần trục lộ giao thông vào giờ cao điểm.</span>
             </li>
             <li class="flex items-start gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+              <span class="text-amber-600 font-bold">•</span>
               <span><strong>Khi AQI &gt; 100:</strong> Chuyển các bài tập cardio nặng sang phòng tập trong nhà có máy lọc không khí để tránh hít thở sâu lượng bụi mịn lớn.</span>
             </li>
             <li class="flex items-start gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-sky-500 mt-1.5 shrink-0"></span>
+              <span class="text-sky-600 font-bold">•</span>
               <span><strong>Uống đủ nước:</strong> Giữ niêm mạc đường hô hấp ẩm ướt giúp cơ chế tự lọc sạch của phế quản hoạt động hiệu quả hơn.</span>
             </li>
           </ul>
         </div>
 
-        <!-- Nhóm 2: Nhóm nhạy cảm (Trẻ em, Phụ nữ mang thai, Người già) -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-md transition">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
-              <i data-lucide="baby" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <h3 class="font-extrabold text-base text-slate-900">Nhóm Nhạy cảm & Trẻ nhỏ</h3>
-              <p class="text-xs text-slate-500">Trẻ em, người cao tuổi, người có bệnh hô hấp/tim mạch</p>
-            </div>
-          </div>
+        <!-- Nhóm 2: Nhóm nhạy cảm -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+          <h3 class="font-bold text-base text-slate-900 mb-1">Nhóm Nhạy cảm &amp; Trẻ nhỏ</h3>
+          <p class="text-xs text-slate-500 mb-3">Trẻ em, người cao tuổi, người có bệnh hô hấp/tim mạch</p>
           <ul class="text-xs text-slate-700 space-y-2.5 leading-relaxed">
             <li class="flex items-start gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+              <span class="text-rose-600 font-bold">•</span>
               <span><strong>Ngưỡng cảnh báo sớm:</strong> Khi AQI vượt 100, trẻ em và người bệnh hen suyễn có nguy cơ khởi phát cơn khó thở nhanh hơn người bình thường gấp 3 lần.</span>
             </li>
             <li class="flex items-start gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
+              <span class="text-emerald-600 font-bold">•</span>
               <span><strong>Khẩu trang đạt chuẩn:</strong> Khẩu trang y tế thông thường không cản được bụi PM2.5. Cần trang bị khẩu trang đạt tiêu chuẩn N95, KN95 hoặc KF94 ôm sát khuôn mặt.</span>
             </li>
             <li class="flex items-start gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+              <span class="text-amber-600 font-bold">•</span>
               <span><strong>Vệ sinh mũi họng:</strong> Dùng nước muối sinh lý 0.9% rửa mắt và súc họng sau khi từ bên ngoài về nhà.</span>
             </li>
           </ul>
         </div>
 
-        <!-- Nhóm 3: Người đi xe máy & Shipper, Tài xế -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-md transition">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-              <i data-lucide="bike" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <h3 class="font-extrabold text-base text-slate-900">Người di chuyển ngoài đường & Shipper</h3>
-              <p class="text-xs text-slate-500">Lưu thông trên các tuyến đường huyết mạch</p>
-            </div>
-          </div>
+        <!-- Nhóm 3: Người đi xe máy & Shipper -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+          <h3 class="font-bold text-base text-slate-900 mb-1">Người di chuyển ngoài đường &amp; Shipper</h3>
+          <p class="text-xs text-slate-500 mb-3">Lưu thông trên các tuyến đường huyết mạch</p>
           <ul class="text-xs text-slate-700 space-y-2.5 leading-relaxed">
             <li class="flex items-start gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+              <span class="text-amber-600 font-bold">•</span>
               <span><strong>Vùng phơi nhiễm cao:</strong> Các nút giao thông đèn đỏ và hầm chui là nơi nồng độ khí CO và hạt bồ hóng cao gấp 4-6 lần. Hãy giữ khoảng cách với ống xả xe buýt/xe tải.</span>
             </li>
             <li class="flex items-start gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-sky-500 mt-1.5 shrink-0"></span>
-              <span><strong>Kính chắn gió & Kính bảo hộ:</strong> Ngăn chặn dị vật và hạt bụi lớn gây viêm giác mạc và cay mắt khi chạy xe vận tốc cao.</span>
+              <span class="text-sky-600 font-bold">•</span>
+              <span><strong>Kính chắn gió:</strong> Ngăn chặn dị vật và hạt bụi lớn gây viêm giác mạc và cay mắt khi chạy xe vận tốc cao.</span>
             </li>
           </ul>
         </div>
 
         <!-- Nhóm 4: Nhà ở & Văn phòng -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-md transition">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center">
-              <i data-lucide="home" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <h3 class="font-extrabold text-base text-slate-900">Không gian sống & Nơi làm việc</h3>
-              <p class="text-xs text-slate-500">Căn hộ, nhà phố, văn phòng công sở</p>
-            </div>
-          </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+          <h3 class="font-bold text-base text-slate-900 mb-1">Không gian sống &amp; Nơi làm việc</h3>
+          <p class="text-xs text-slate-500 mb-3">Căn hộ, nhà phố, văn phòng công sở</p>
           <ul class="text-xs text-slate-700 space-y-2.5 leading-relaxed">
             <li class="flex items-start gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
+              <span class="text-emerald-600 font-bold">•</span>
               <span><strong>Máy lọc không khí màng HEPA:</strong> Đặt ở phòng ngủ và phòng khách, lọc sạch 99.97% hạt bụi kích thước từ 0.3 micron.</span>
             </li>
             <li class="flex items-start gap-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-teal-500 mt-1.5 shrink-0"></span>
+              <span class="text-teal-600 font-bold">•</span>
               <span><strong>Cây xanh trong nhà:</strong> Bố trí các loại cây có khả năng hấp thụ độc tố formaldehyde và benzen như Trầu bà, Lan ý, Lưỡi hổ.</span>
             </li>
           </ul>
@@ -826,8 +718,7 @@
 
       <!-- Bảng tra cứu chuẩn thang đo AQI quốc tế EPA -->
       <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs overflow-x-auto">
-        <h3 class="font-extrabold text-base text-slate-900 mb-3 flex items-center gap-2">
-          <i data-lucide="table" class="w-4 h-4 text-sky-600"></i>
+        <h3 class="font-bold text-sm text-slate-900 uppercase tracking-wider mb-3">
           Bảng Quy chuẩn Phân cấp Chất lượng Không khí Quốc tế (US EPA Standard)
         </h3>
         
@@ -845,35 +736,35 @@
             <tr>
               <td class="py-2.5 px-3 font-bold">0 – 50</td>
               <td class="py-2.5 px-3 font-semibold text-emerald-700">Tốt (Good)</td>
-              <td class="py-2.5 px-3"><span class="inline-block w-4 h-4 rounded bg-emerald-500"></span></td>
+              <td class="py-2.5 px-3"><span class="inline-block w-3.5 h-3.5 rounded-full bg-emerald-500"></span></td>
               <td class="py-2.5 px-3 text-slate-600">Chất lượng không khí an toàn tối ưu.</td>
               <td class="py-2.5 px-3 text-slate-600">Tự do vận động ngoài trời, mở cửa thông khí.</td>
             </tr>
             <tr>
               <td class="py-2.5 px-3 font-bold">51 – 100</td>
               <td class="py-2.5 px-3 font-semibold text-amber-700">Trung bình (Moderate)</td>
-              <td class="py-2.5 px-3"><span class="inline-block w-4 h-4 rounded bg-amber-400"></span></td>
+              <td class="py-2.5 px-3"><span class="inline-block w-3.5 h-3.5 rounded-full bg-amber-400"></span></td>
               <td class="py-2.5 px-3 text-slate-600">Người cực kỳ nhạy cảm có thể bị kích ứng nhẹ.</td>
               <td class="py-2.5 px-3 text-slate-600">Hoạt động bình thường; nhóm nhạy cảm theo dõi phản ứng.</td>
             </tr>
             <tr>
               <td class="py-2.5 px-3 font-bold">101 – 150</td>
               <td class="py-2.5 px-3 font-semibold text-orange-700">Kém (Nhạy cảm)</td>
-              <td class="py-2.5 px-3"><span class="inline-block w-4 h-4 rounded bg-orange-500"></span></td>
+              <td class="py-2.5 px-3"><span class="inline-block w-3.5 h-3.5 rounded-full bg-orange-500"></span></td>
               <td class="py-2.5 px-3 text-slate-600">Trẻ em, người già, người bệnh hô hấp dễ bị mệt.</td>
               <td class="py-2.5 px-3 text-slate-600">Đeo khẩu trang N95 khi ra ngoài; hạn chế tập thể thao nặng.</td>
             </tr>
             <tr>
               <td class="py-2.5 px-3 font-bold">151 – 200</td>
               <td class="py-2.5 px-3 font-semibold text-rose-700">Xấu (Unhealthy)</td>
-              <td class="py-2.5 px-3"><span class="inline-block w-4 h-4 rounded bg-rose-500"></span></td>
+              <td class="py-2.5 px-3"><span class="inline-block w-3.5 h-3.5 rounded-full bg-rose-500"></span></td>
               <td class="py-2.5 px-3 text-slate-600">Mọi người đều bắt đầu chịu tác động tiêu cực.</td>
               <td class="py-2.5 px-3 text-slate-600">Hạn chế ra ngoài; đóng cửa sổ và bật máy lọc không khí.</td>
             </tr>
             <tr>
               <td class="py-2.5 px-3 font-bold">&gt; 200</td>
               <td class="py-2.5 px-3 font-semibold text-purple-700">Rất xấu &amp; Nguy hại</td>
-              <td class="py-2.5 px-3"><span class="inline-block w-4 h-4 rounded bg-purple-600"></span></td>
+              <td class="py-2.5 px-3"><span class="inline-block w-3.5 h-3.5 rounded-full bg-purple-600"></span></td>
               <td class="py-2.5 px-3 text-slate-600">Cảnh báo khẩn cấp về sức khỏe toàn diện.</td>
               <td class="py-2.5 px-3 text-slate-600">Tránh hoàn toàn hoạt động ngoài trời; ở trong không gian lọc khí.</td>
             </tr>
@@ -890,13 +781,10 @@
   <!-- ========================================== -->
   <footer class="mt-auto border-t border-slate-200 bg-white py-6 text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-2">
-        <i data-lucide="database" class="w-4 h-4 text-sky-600"></i>
-        <span>Nguồn dữ liệu mở: <strong>Open-Meteo Air Quality Open API</strong> & mô hình khí quyển <strong>Copernicus Atmosphere Monitoring Service (CAMS)</strong>.</span>
+      <div>
+        Nguồn dữ liệu mở: <strong>Open-Meteo Air Quality Open API</strong> &amp; mô hình khí quyển <strong>Copernicus Atmosphere Monitoring Service (CAMS)</strong>.
       </div>
       <div class="flex items-center gap-4 text-slate-500">
-        <span>Tự động làm mới</span>
-        <span>•</span>
         <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" class="hover:text-sky-600 transition underline underline-offset-2">Tài liệu API</a>
         <span>•</span>
         <span class="text-slate-600 font-semibold">AirLens VN &copy; 2026</span>
@@ -939,7 +827,7 @@
       hcm: { name: 'TP. Hồ Chí Minh', lat: 10.8231, lng: 106.6297 },
       cantho: { name: 'Cần Thơ', lat: 10.0452, lng: 105.7469 },
       vungtau: { name: 'Vũng Tàu', lat: 10.3460, lng: 107.0843 },
-      phuquoc: { name: 'Đảo Phú Quốc (Kiên Giang)', lat: 10.2899, lng: 103.9840 },
+      phuquoc: { name: 'Đảo Phú Quốc', lat: 10.2899, lng: 103.9840 },
       binhduong: { name: 'Thủ Dầu Một (Bình Dương)', lat: 10.9805, lng: 106.6519 },
       dongnai: { name: 'Biên Hòa (Đồng Nai)', lat: 10.9574, lng: 106.8427 },
       longan: { name: 'Tân An (Long An)', lat: 10.5360, lng: 106.4134 },
@@ -947,32 +835,30 @@
       camau: { name: 'TP. Cà Mau', lat: 9.1769, lng: 105.1500 }
     };
 
-    // Trạng thái ứng dụng
     let currentLat = CITIES.danang.lat;
     let currentLng = CITIES.danang.lng;
     let currentLocationName = CITIES.danang.name;
     let map = null;
     let activeMarker = null;
     let cityMarkersGroup = null;
-    let aqiZoneCircle = null; // Vòng phủ vi khí hậu đổi màu theo AQI
+    let aqiZoneCircle = null;
     let trendChart = null;
     let currentMapTileLayer = null;
-    let isOsmTile = true;
+    let isVoyagerTile = true;
     let activeTab = 'today';
 
-    // Trạng thái Lịch Calendar
     let calendarDate = new Date();
     let monthlyAirHistory = {};
 
-    const TILE_OSM = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+    // SỬ DỤNG TILE SERVER CARTO VOYAGER CỰC KỲ ỔN ĐỊNH VÀ NHANH
     const TILE_VOYAGER = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-    const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    const TILE_POSITRON = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    const TILE_ATTRIBUTION = '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
     // ------------------------------------------
     // Khởi tạo ứng dụng
     // ------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
       startLiveClock();
       initMap();
       initChart();
@@ -983,7 +869,7 @@
     });
 
     // ------------------------------------------
-    // Chuyển Tab (Hôm Nay / Lịch Tháng / Sức Khỏe)
+    // Chuyển Tab (Thanh bar nguyên khối)
     // ------------------------------------------
     function switchTab(tabId) {
       activeTab = tabId;
@@ -1021,7 +907,6 @@
         buildCalendar(calendarDate.getFullYear(), calendarDate.getMonth());
       }
 
-      lucide.createIcons();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1043,22 +928,26 @@
     }
 
     // ------------------------------------------
-    // Khởi tạo bản đồ Leaflet
+    // Khởi tạo bản đồ Leaflet (Đảm bảo luôn hiện map)
     // ------------------------------------------
     function initMap() {
+      const mapEl = document.getElementById('map');
+      if (!mapEl) return;
+
       map = L.map('map', {
         zoomControl: true,
         attributionControl: true
       }).setView([currentLat, currentLng], 12);
 
-      currentMapTileLayer = L.tileLayer(TILE_OSM, {
+      currentMapTileLayer = L.tileLayer(TILE_VOYAGER, {
         attribution: TILE_ATTRIBUTION,
+        subdomains: 'abcd',
         maxZoom: 19
       }).addTo(map);
 
-      setTimeout(() => {
-        if (map) map.invalidateSize();
-      }, 250);
+      // Căn chỉnh kích thước map ngay sau khi load
+      setTimeout(() => { if (map) map.invalidateSize(); }, 150);
+      setTimeout(() => { if (map) map.invalidateSize(); }, 500);
 
       window.addEventListener('resize', () => {
         if (map) map.invalidateSize();
@@ -1089,7 +978,6 @@
         cityMarkersGroup.addLayer(m);
       });
 
-      // Bắt sự kiện Click bất kỳ điểm nào trên bản đồ
       map.on('click', function(e) {
         const { lat, lng } = e.latlng;
         currentLat = parseFloat(lat.toFixed(4));
@@ -1110,9 +998,8 @@
           fillColor: '#10b981',
           borderColor: '#059669',
           rgbaPulse: 'rgba(16, 185, 129, 0.45)',
-          text: 'Tốt (Trong lành)',
-          badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-          dotColor: '#10b981'
+          text: 'Tốt',
+          badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300'
         };
       } else if (aqi <= 100) {
         return {
@@ -1120,35 +1007,31 @@
           borderColor: '#d97706',
           rgbaPulse: 'rgba(245, 158, 11, 0.45)',
           text: 'Trung bình',
-          badgeClass: 'bg-amber-100 text-amber-800 border-amber-300',
-          dotColor: '#f59e0b'
+          badgeClass: 'bg-amber-100 text-amber-800 border-amber-300'
         };
       } else if (aqi <= 150) {
         return {
           fillColor: '#f97316',
           borderColor: '#ea580c',
           rgbaPulse: 'rgba(249, 115, 22, 0.45)',
-          text: 'Kém (Nhạy cảm)',
-          badgeClass: 'bg-orange-100 text-orange-800 border-orange-300',
-          dotColor: '#f97316'
+          text: 'Nhạy cảm',
+          badgeClass: 'bg-orange-100 text-orange-800 border-orange-300'
         };
       } else if (aqi <= 200) {
         return {
           fillColor: '#ef4444',
           borderColor: '#dc2626',
           rgbaPulse: 'rgba(239, 68, 68, 0.5)',
-          text: 'Xấu (Ô nhiễm)',
-          badgeClass: 'bg-rose-100 text-rose-800 border-rose-300',
-          dotColor: '#ef4444'
+          text: 'Xấu / Ô nhiễm',
+          badgeClass: 'bg-rose-100 text-rose-800 border-rose-300'
         };
       } else {
         return {
           fillColor: '#8b5cf6',
           borderColor: '#7c3aed',
           rgbaPulse: 'rgba(139, 92, 246, 0.5)',
-          text: 'Rất xấu & Nguy hại',
-          badgeClass: 'bg-purple-100 text-purple-800 border-purple-300',
-          dotColor: '#8b5cf6'
+          text: 'Nguy hại',
+          badgeClass: 'bg-purple-100 text-purple-800 border-purple-300'
         };
       }
     }
@@ -1177,7 +1060,7 @@
       aqiZoneCircle.bindTooltip(`
         <div style="font-family:sans-serif;font-size:12px;padding:3px;">
           <strong style="color:#0f172a;">Vùng quan trắc: ${locName}</strong><br>
-          <span style="color:${colorInfo.borderColor};font-weight:bold;">● AQI: ${Math.round(aqi)} - Mức ${colorInfo.text}</span>
+          <span style="color:${colorInfo.borderColor};font-weight:bold;">● AQI: ${Math.round(aqi)} (${colorInfo.text})</span>
         </div>
       `, { sticky: true });
 
@@ -1218,13 +1101,7 @@
         mapAqiBadge.innerText = `● Vùng AQI: ${Math.round(aqi)} (${colorInfo.text})`;
       }
 
-      // 4. Cập nhật điểm sáng trên chú giải bản đồ
-      const mapLegendIndicator = document.getElementById('mapLegendIndicator');
-      if (mapLegendIndicator) {
-        mapLegendIndicator.style.background = colorInfo.fillColor;
-      }
-
-      // 5. Cập nhật chấm tròn trạng thái tại Card Thông Tin Địa Điểm
+      // 4. Cập nhật chấm tròn trạng thái tại Card Thông Tin Địa Điểm
       const locationStatusDot = document.getElementById('locationStatusDot');
       if (locationStatusDot) {
         locationStatusDot.style.background = colorInfo.fillColor;
@@ -1250,12 +1127,12 @@
               label: 'PM2.5 (μg/m³)',
               data: Array(24).fill(0),
               borderColor: '#0284c7',
-              borderWidth: 2.5,
+              borderWidth: 2,
               backgroundColor: gradient,
               fill: true,
               tension: 0.35,
               pointRadius: 2,
-              pointHoverRadius: 5,
+              pointHoverRadius: 4,
               pointHoverBackgroundColor: '#0284c7',
               pointHoverBorderColor: '#ffffff'
             }
@@ -1296,7 +1173,6 @@
 
     function updateTrendChart(times, pm25Values) {
       if (!trendChart) return;
-      // Chỉ lấy 24 giờ đầu tiên (hôm nay)
       const sliceTimes = times.slice(0, 24);
       const sliceValues = pm25Values.slice(0, 24);
 
@@ -1311,7 +1187,7 @@
     }
 
     // ------------------------------------------
-    // GỌI API OPEN-METEO THỜI GIAN THỰC (ĐÃ FIX URL)
+    // GỌI API OPEN-METEO THỜI GIAN THỰC
     // ------------------------------------------
     async function fetchFullData(lat, lng, locName) {
       setLoading(true);
@@ -1319,7 +1195,6 @@
       document.getElementById('locationSub').innerHTML = `Tọa độ: ${lat}°N, ${lng}°E • Thời gian đo: <span id="locationTime">Đang kết nối...</span>`;
       document.getElementById('calendarLocationSub').innerText = `Đang xem tại: ${locName}`;
 
-      // URL chuẩn của Open-Meteo API
       const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=european_aqi,us_aqi,pm10,pm2_5&hourly=pm2_5,us_aqi&timezone=auto&forecast_days=7`;
       const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m&timezone=auto`;
 
@@ -1389,7 +1264,7 @@
 
       const badgePm25 = document.getElementById('badgePm25');
       if (pm25 <= 15) {
-        badgePm25.innerText = 'Rất tốt (WHO)';
+        badgePm25.innerText = 'Bình thường';
         badgePm25.className = 'text-emerald-600 font-bold';
       } else if (pm25 <= 35) {
         badgePm25.innerText = 'Chấp nhận được';
@@ -1401,10 +1276,10 @@
 
       const badgePm10 = document.getElementById('badgePm10');
       if (pm10 <= 45) {
-        badgePm10.innerText = 'Đạt chuẩn WHO';
+        badgePm10.innerText = 'Bình thường';
         badgePm10.className = 'text-emerald-600 font-bold';
       } else {
-        badgePm10.innerText = 'Vượt khuyến nghị';
+        badgePm10.innerText = 'Vượt chuẩn WHO';
         badgePm10.className = 'text-orange-600 font-bold';
       }
 
@@ -1445,18 +1320,18 @@
 
       if (aqi <= 50) {
         aqiCard.className = "relative overflow-hidden rounded-2xl p-5 border transition-all duration-500 shadow-xs bg-gradient-to-br from-emerald-50 via-white to-emerald-50/30 border-emerald-300";
-        aqiBadge.className = "px-3.5 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-xs";
-        aqiStatusText.innerText = "Tốt (Good)";
-        aqiDesc.innerText = "Chất lượng không khí đạt mức an toàn tối ưu, không tiềm ẩn nguy cơ sức khỏe đối với bất kỳ ai.";
+        aqiBadge.className = "px-3 py-1 rounded-lg font-bold text-xs bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs";
+        aqiStatusText.innerText = "Tốt";
+        aqiDesc.innerText = "Chất lượng không khí đạt mức an toàn tối ưu, không tiềm ẩn nguy cơ sức khỏe đối với cộng đồng.";
 
-        recCommute.innerText = "Không khí trong lành, hoàn hảo cho các hoạt động di chuyển công cộng, đi bộ hoặc đạp xe.";
+        recCommute.innerText = "Không khí trong lành, thuận tiện cho các hoạt động di chuyển công cộng, đi bộ hoặc xe đạp.";
         recSport.innerText = "Điều kiện lý tưởng để tập thể dục ngoài trời, chạy bộ hoặc vận động thể thao tự do.";
         recHome.innerText = "Nên mở rộng cửa sổ để lưu thông khí tươi tự nhiên, làm sạch không gian nhà ở.";
 
       } else if (aqi <= 100) {
         aqiCard.className = "relative overflow-hidden rounded-2xl p-5 border transition-all duration-500 shadow-xs bg-gradient-to-br from-amber-50 via-white to-amber-50/30 border-amber-300";
-        aqiBadge.className = "px-3.5 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5 shadow-xs";
-        aqiStatusText.innerText = "Trung bình (Moderate)";
+        aqiBadge.className = "px-3 py-1 rounded-lg font-bold text-xs bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs";
+        aqiStatusText.innerText = "Trung bình";
         aqiDesc.innerText = "Chất lượng không khí ở mức chấp nhận được. Người cực kỳ nhạy cảm có thể bị kích ứng nhẹ.";
 
         recCommute.innerText = "Người bình thường di chuyển bình thường; nhóm nhạy cảm có thể mang khẩu trang mỏng.";
@@ -1465,8 +1340,8 @@
 
       } else if (aqi <= 150) {
         aqiCard.className = "relative overflow-hidden rounded-2xl p-5 border transition-all duration-500 shadow-xs bg-gradient-to-br from-orange-50 via-white to-orange-50/30 border-orange-300";
-        aqiBadge.className = "px-3.5 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-orange-100 text-orange-800 border border-orange-300 flex items-center gap-1.5 shadow-xs";
-        aqiStatusText.innerText = "Kém (Nhóm nhạy cảm)";
+        aqiBadge.className = "px-3 py-1 rounded-lg font-bold text-xs bg-orange-100 text-orange-800 border border-orange-300 shadow-2xs";
+        aqiStatusText.innerText = "Kém (Nhạy cảm)";
         aqiDesc.innerText = "Trẻ em, người lớn tuổi và người có bệnh hô hấp có thể bị kích ứng và khó chịu đường hô hấp.";
 
         recCommute.innerText = "Nên chủ động đeo khẩu trang chống bụi mịn (N95/KN95) khi tham gia giao thông trên đường lớn.";
@@ -1475,7 +1350,7 @@
 
       } else {
         aqiCard.className = "relative overflow-hidden rounded-2xl p-5 border transition-all duration-500 shadow-xs bg-gradient-to-br from-rose-50 via-white to-rose-50/30 border-rose-300";
-        aqiBadge.className = "px-3.5 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1.5 shadow-xs";
+        aqiBadge.className = "px-3 py-1 rounded-lg font-bold text-xs bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs";
         aqiStatusText.innerText = "Xấu / Nguy hại";
         aqiDesc.innerText = "Toàn bộ cư dân có nguy cơ bị ảnh hưởng sức khỏe, nhóm nhạy cảm có thể gặp các triệu chứng nặng.";
 
@@ -1483,8 +1358,6 @@
         recSport.innerText = "Ngừng toàn bộ hoạt động tập thể dục ngoài trời, chuyển sang tập nhẹ trong nhà.";
         recHome.innerText = "Đóng kín cửa sổ; bật máy lọc không khí ở công suất cao để bảo vệ gia đình.";
       }
-
-      lucide.createIcons();
     }
 
     function calculateApproxUsAqi(pm25) {
@@ -1558,7 +1431,7 @@
 
       for (let i = 0; i < startDayOfWeek; i++) {
         const emptyCell = document.createElement('div');
-        emptyCell.className = "h-16 sm:h-20 bg-slate-50/50 rounded-xl border border-slate-100 opacity-40";
+        emptyCell.className = "h-16 sm:h-20 bg-slate-50 rounded-xl border border-slate-100 opacity-40";
         grid.appendChild(emptyCell);
       }
 
@@ -1613,7 +1486,7 @@
         
         cell.innerHTML = `
           <div class="flex items-center justify-between">
-            <span class="text-xs font-black ${isToday ? 'text-sky-700 bg-sky-100 px-1 rounded' : 'text-slate-800'}">${day}</span>
+            <span class="text-xs font-bold ${isToday ? 'text-sky-700 bg-sky-100 px-1 rounded' : 'text-slate-800'}">${day}</span>
             <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-full ${aqiColorClass}">${Math.round(dayData.aqi)}</span>
           </div>
           <div class="mt-auto flex items-center justify-between text-[9px] sm:text-[10px] text-slate-500">
@@ -1678,12 +1551,12 @@
           return;
         }
 
-        const geoIcon = document.getElementById('geoIcon');
-        geoIcon.classList.add('animate-spin');
+        const geoText = document.getElementById('geoText');
+        geoText.innerText = 'Đang tìm...';
 
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            geoIcon.classList.remove('animate-spin');
+            geoText.innerText = 'Định vị GPS';
             currentLat = parseFloat(position.coords.latitude.toFixed(4));
             currentLng = parseFloat(position.coords.longitude.toFixed(4));
             currentLocationName = "Vị trí GPS của bạn";
@@ -1693,7 +1566,7 @@
             fetchFullData(currentLat, currentLng, currentLocationName);
           },
           (error) => {
-            geoIcon.classList.remove('animate-spin');
+            geoText.innerText = 'Định vị GPS';
             showToast('Không thể lấy GPS', 'Vui lòng cho phép quyền truy cập vị trí trên trình duyệt.', 'error');
           },
           { timeout: 10000, enableHighAccuracy: true }
@@ -1702,26 +1575,26 @@
 
       const btnRefresh = document.getElementById('btnRefresh');
       btnRefresh.addEventListener('click', () => {
-        const icon = document.getElementById('refreshIcon');
-        icon.classList.add('animate-spin');
+        btnRefresh.innerText = 'Đang tải...';
         fetchFullData(currentLat, currentLng, currentLocationName).finally(() => {
-          setTimeout(() => icon.classList.remove('animate-spin'), 600);
+          setTimeout(() => btnRefresh.innerText = 'Làm mới', 600);
         });
       });
 
       const btnMapStyle = document.getElementById('btnMapStyle');
       const mapStyleLabel = document.getElementById('mapStyleLabel');
       btnMapStyle.addEventListener('click', () => {
-        isOsmTile = !isOsmTile;
+        isVoyagerTile = !isVoyagerTile;
         map.removeLayer(currentMapTileLayer);
 
-        const newTileUrl = isOsmTile ? TILE_OSM : TILE_VOYAGER;
+        const newTileUrl = isVoyagerTile ? TILE_VOYAGER : TILE_POSITRON;
         currentMapTileLayer = L.tileLayer(newTileUrl, {
           attribution: TILE_ATTRIBUTION,
+          subdomains: 'abcd',
           maxZoom: 19
         }).addTo(map);
 
-        mapStyleLabel.innerText = isOsmTile ? 'Đổi Bản đồ Chi tiết' : 'Đổi Bản đồ Chuẩn';
+        mapStyleLabel.innerText = isVoyagerTile ? 'Đổi Bản đồ Chi tiết' : 'Đổi Bản đồ Sáng';
       });
     }
 
@@ -1748,17 +1621,9 @@
       const toast = document.getElementById('toastNotification');
       const toastTitle = document.getElementById('toastTitle');
       const toastMessage = document.getElementById('toastMessage');
-      const toastIcon = document.getElementById('toastIcon');
 
       toastTitle.innerText = title;
       toastMessage.innerText = message;
-
-      if (type === 'success') {
-        toastIcon.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>`;
-      } else {
-        toastIcon.innerHTML = `<i data-lucide="alert-circle" class="w-5 h-5 text-rose-500"></i>`;
-      }
-      lucide.createIcons();
 
       toast.classList.remove('translate-y-24', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
