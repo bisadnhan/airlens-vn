@@ -1,122 +1,86 @@
 # 🌿 AirLens VN - Giám sát chất lượng không khí, vi khí hậu và sức khỏe đô thị
 
-**AirLens VN** là ứng dụng web thời gian thực (Single Page Application) giúp người dân đô thị theo dõi hiện trạng không khí (AQI), nồng độ bụi mịn ($PM_{2.5}$, $PM_{10}$), nhiệt độ, độ ẩm và các khuyến nghị bảo vệ sức khỏe hữu ích. Toàn bộ dữ liệu được kết nối trực tiếp từ **Open-Meteo API** và mô hình khí quyển **Copernicus CAMS** của Liên minh Châu Âu.
-
-🔗 **Trang web trực tuyến (Live Demo):** [https://bisadnhan.github.io/airlens-vn/](https://bisadnhan.github.io/airlens-vn/)
-
----
-
-## 🚀 Hướng dẫn cài đặt và chạy thử (Installation)
-
-Ứng dụng được thiết kế theo kiến trúc Web tĩnh hiện đại (HTML5 + Tailwind CSS + Vanilla JS ES6+), **không yêu cầu cài đặt môi trường phức tạp hay build step**. Bạn có thể khởi chạy theo các cách sau:
-
-### Cách 1: Tải về và mở trực tiếp (Đơn giản nhất)
-1. Tải toàn bộ mã nguồn về máy (hoặc nhấn nút **Code** > **Download ZIP** trên GitHub rồi giải nén).
-2. Nhấp đúp chuột vào file `index.html` để mở ngay trên trình duyệt bất kỳ (Google Chrome, Microsoft Edge, Safari, Firefox,...).
+**Hệ thống giám sát chất lượng không khí, vi khí hậu và cẩm nang sức khỏe đô thị thời gian thực**  
+Ứng dụng Web hiện đại (Single Page Application) sử dụng dữ liệu mở từ **Open-Meteo API và Copernicus Atmosphere Monitoring Service (CAMS)**.
 
 ---
 
-### Cách 2: Chạy qua Git và Local Server (Khuyên dùng cho lập trình viên)
+## 📖 Giới thiệu dự án
 
-1. **Clone dự án về máy tính:**
-   ```bash
-   git clone https://github.com/bisadnhan/airlens-vn.git
-   cd airlens-vn
-   ```
+**AirLens VN** là giải pháp công nghệ số phục vụ cộng đồng và mục tiêu phát triển đô thị bền vững. Ứng dụng cung cấp bức tranh toàn diện và minh bạch về hiện trạng chất lượng không khí (AQI), nồng độ bụi mịn ($PM_{2.5}$, $PM_{10}$), các yếu tố vi khí hậu (nhiệt độ, độ ẩm) cùng lịch theo dõi tháng và cẩm nang bảo vệ sức khỏe cho người dân đô thị Việt Nam.
 
-2. **Khởi chạy Local Server:**
-   * **Cách A - Dùng Visual Studio Code:**
-     Cài extension **Live Server** > Chuột phải vào file `index.html` > Chọn **Open with Live Server** (cổng mặc định `http://127.0.0.1:5500`).
-   * **Cách B - Dùng Python (có sẵn trên máy):**
-     ```bash
-     python -m http.server 8000
-     ```
-     Sau đó truy cập trình duyệt theo địa chỉ: `http://localhost:8000`
-   * **Cách C - Dùng Node.js (npx):**
-     ```bash
-     npx serve .
-     ```
+Toàn bộ ứng dụng được xây dựng theo kiến trúc Web tĩnh nhẹ, tối ưu trải nghiệm người dùng, tải dữ liệu trực tiếp từ các mô hình khí quyển chuẩn quốc tế mà không cần hệ thống máy chủ trung gian.
 
 ---
 
-## 📖 Hướng dẫn sử dụng chi tiết (User Guide)
+## 🌟 Các phân hệ tính năng chính
 
-### 1. Quan trắc không khí hôm nay (`Hôm nay`)
-* **Chọn khu vực quan trắc:** Sử dụng menu thả xuống ở thanh công cụ để chọn nhanh hơn **25 tỉnh, thành phố trọng điểm** trên cả 3 miền (Hà Nội, Đà Nẵng, TP. Hồ Chí Minh, Hải Phòng, Huế, Đà Lạt, Cần Thơ,...).
-* **Định vị vị trí hiện tại (GPS):** Bấm nút **"Định vị GPS"** và cho phép trình duyệt truy cập vị trí của bạn để tự động lấy số liệu không khí tức thì tại nơi bạn đang đứng.
-* **Đo điểm bất kỳ trên bản đồ:** Bạn có thể **click chuột hoặc chạm tay vào bất kỳ điểm nào trên bản đồ**, hệ thống sẽ tự động ghim vị trí và gọi API tính toán chỉ số chất lượng không khí tại tọa độ đó.
-* **Đổi kiểu bản đồ:** Bấm nút **"Bản đồ chi tiết" / "Bản đồ cộng đồng"** ở góc phải bản đồ để chuyển đổi qua lại giữa bản đồ vệ tinh/đường phố Esri và OpenStreetMap.
-* **Xem chỉ số AQI và bụi mịn:**
-  * **AQI (US EPA):** Thẻ số lớn có thanh đo màu phân cấp (Xanh $\le 50$: Tốt, Vàng $51-100$: Trung bình, Cam $101-150$: Kém/Nhạy cảm, Đỏ $>150$: Nguy hại).
-  * **$PM_{2.5}$ và $PM_{10}$:** Đối chiếu trực tiếp với quy chuẩn nồng độ an toàn 24h của Tổ chức Y tế Thế giới (WHO 2021).
-  * **Biểu đồ 24 giờ:** Theo dõi đường diễn biến nồng độ bụi từ 0h đến 23h trong ngày.
-  * **Làm mới dữ liệu:** Bấm nút **"Làm mới"** để kéo dữ liệu quan trắc mới nhất từ vệ tinh.
+Ứng dụng được tổ chức khoa học với thanh điều hướng đa tính năng:
 
-### 2. Xem lịch theo dõi tháng (`Lịch theo dõi`)
-* Bấm vào tab **"Lịch theo dõi"** trên thanh điều hướng.
-* **Theo dõi lưới tháng:** Mỗi ô ngày hiển thị rõ chỉ số AQI đổi màu, nồng độ bụi $PM_{2.5}$ trung bình và nhiệt độ.
-* **Bấm vào từng ngày:** Xem bảng đánh giá chi tiết tình trạng ô nhiễm và các khuyến nghị vận động dành riêng cho ngày đó.
-* **Tính minh bạch dữ liệu:** Các ngày trong tương lai chưa có dữ liệu quan trắc thực tế sẽ được hiển thị dạng `--` (chưa có dự báo) nhằm đảm bảo số liệu chính xác và trung thực.
-
-### 3. Cẩm nang sức khỏe và hoạt động (`Sức khỏe và hoạt động`)
-* Bấm vào tab **"Sức khỏe và hoạt động"** để xem hướng dẫn phòng ngừa phơi nhiễm ô nhiễm cho 4 nhóm đối tượng:
-  1. **Vận động viên & người tập thể thao:** Khung giờ chạy bộ, tập luyện ngoài trời an toàn.
-  2. **Trẻ nhỏ & người có bệnh hô hấp:** Khuyến nghị khẩu trang lọc bụi mịn chuẩn N95/KF94, cách vệ sinh mũi họng.
-  3. **Người tham gia giao thông & tài xế:** Nhận diện điểm đen khói bụi và biện pháp bảo vệ.
-  4. **Không gian sống & văn phòng:** Hướng dẫn chọn máy lọc không khí chuẩn HEPA và cây xanh thanh lọc khí trong nhà.
-
----
-
-## 🛠️ Hướng dẫn cập nhật và đẩy code lên GitHub (Git Workflow)
-
-Mỗi khi bạn chỉnh sửa xong mã nguồn và muốn cập nhật ngay lên trang web GitHub Pages, bạn thực hiện các bước sau:
-
-```bash
-# 1. Gom tất cả các file đã thay đổi
-git add .
-
-# 2. Lưu lại phiên bản với ghi chú mô tả
-git commit -m "Mo ta nhung gi ban vua sua doi"
-
-# 3. Đẩy lên nhánh chính (main) trên GitHub
-git push origin main
-```
-
-> **Gợi ý gộp lệnh trong PowerShell:**
-> ```powershell
-> git add . ; git commit -m "cap nhat web" ; git push origin main
-> ```
-
-*Nếu bạn muốn đẩy lên một nhánh thử nghiệm khác (ví dụ: `dev`):*
-```bash
-git checkout -b dev
-git add .
-git commit -m "thu nghiem tinh nang moi"
-git push -u origin dev
-```
+### 1. 🌤️ Xem hôm nay (Today Overview)
+* **Bản đồ không gian mở tương tác (Leaflet.js):**
+  * Tích hợp sẵn danh bạ hơn **25 đô thị trọng điểm** trải dài khắp 3 miền: Miền Bắc, Miền Trung và Tây Nguyên, Miền Nam.
+  * Tích hợp tính năng **"Vị trí của tôi"** (HTML5 Geolocation) để tự động định vị GPS của người dùng.
+  * Cho phép **click hoặc chạm vào bất kỳ tọa độ nào trên bản đồ** để đo thông số vi khí hậu tức thì tại điểm đó.
+  * Hỗ trợ chuyển đổi linh hoạt giữa bản đồ chi tiết Esri World Street Map và bản đồ cộng đồng OpenStreetMap.
+* **Đồng hồ thời gian thực (Live Clock):**
+  * Hiển thị Thứ, Ngày Tháng Năm và Giờ Phút Giây chạy trực tiếp theo múi giờ Việt Nam (GMT+7).
+  * Mốc thời gian cập nhật số liệu của trạm quan trắc.
+* **Chỉ số AQI chuẩn quốc tế (US EPA):**
+  * Thẻ hiển thị lớn với màu sắc biến đổi động theo ngưỡng ô nhiễm: *Tốt (Xanh lá $\le 50$)*, *Trung bình (Vàng $51-100$)*, *Kém / Nhạy cảm (Cam $101-150$)*, *Xấu / Nguy hại (Đỏ/Tím $>150$)*.
+  * Thanh thước đo trực quan thể hiện vị trí kim đo trong thang giá trị 0 – 300+.
+* **Bộ 4 thông số đo vi khí hậu:**
+  * Bụi mịn $PM_{2.5}$ ($\mu g/m^3$) đối chiếu khuyến nghị của Tổ chức Y tế Thế giới (WHO: $\le 15$).
+  * Bụi thô $PM_{10}$ ($\mu g/m^3$) đối chiếu chuẩn WHO ($\le 45$).
+  * Nhiệt độ bề mặt (°C) và cảm nhận ngoài trời.
+  * Độ ẩm tương đối của không khí (%).
+* **Biểu đồ xu hướng 24 giờ (Chart.js):**
+  * Đường diễn biến nồng độ $PM_{2.5}$ từ 0h đến 23h trong ngày với hiệu ứng Area Gradient mượt mà.
+* **Khuyến nghị nhanh:** Tóm tắt 3 hướng dẫn hành động về Đi lại, Thể thao và Không gian nhà ở.
 
 ---
 
-## ⚙️ Cấu trúc thư mục dự án
-
-```text
-airlens-vn/
-├── index.html        # Giao diện chính và toàn bộ mã nguồn ứng dụng (HTML/JS/CSS)
-├── assets/           # Tài nguyên hình ảnh, biểu tượng
-│   ├── logo-icon.png # Biểu tượng logo AirLens chuẩn độ phân giải cao
-│   ├── logo.png      # Logo nhận diện thương hiệu hoàn chỉnh
-│   └── logo.jpg      # Bản gốc logo tải lên
-└── README.md         # Tài liệu dự án và hướng dẫn sử dụng
-```
+### 2. 📅 Lịch theo dõi tháng (Monthly Calendar)
+* **Giao diện lịch tháng thông minh:**
+  * Thể hiện toàn bộ các ngày trong tháng dưới dạng lưới 7 cột trực quan.
+  * Mỗi ô ngày hiển thị rõ chỉ số AQI phân màu cảnh báo, nồng độ bụi $PM_{2.5}$ trung bình và nhiệt độ trong ngày.
+  * Đánh dấu nổi bật ngày hiện tại.
+* **Thống kê tổng kết tháng:**
+  * Tự động tổng hợp số lượng ngày Không khí Tốt, ngày Trung bình, ngày Kém và ngày Cảnh báo Ô nhiễm trong tháng.
+* **Bảng chi tiết ngày được chọn:**
+  * Khi bấm vào bất kỳ ngày nào trên lịch, hệ thống sẽ mở bảng phân tích chi tiết: Nồng độ chất ô nhiễm, nhiệt độ, đánh giá chất lượng và lời khuyên sinh hoạt tương ứng cho ngày đó.
+* **Điều hướng thời gian:** Dễ dàng chuyển đổi giữa các tháng để theo dõi xu hướng biến đổi môi trường theo mùa.
 
 ---
 
-## 🔬 Tiêu chuẩn kỹ thuật và nguồn dữ liệu
+### 3. ❤️ Cẩm nang sức khỏe và hoạt động đô thị (Health & Activities)
+* **Hướng dẫn chi tiết cho 4 nhóm đối tượng đặc thù:**
+  1. 🏃 **Vận động viên và thể thao ngoài trời:** Khung giờ vàng để chạy bộ/đạp xe tại công viên; ngưỡng AQI cần chuyển bài tập vào phòng trong nhà; hướng dẫn bổ sung nước bảo vệ niêm mạc phế quản.
+  2. 👶 **Nhóm nhạy cảm và trẻ nhỏ:** Ngưỡng cảnh báo sớm cho trẻ em và người có tiền sử hen suyễn; hướng dẫn sử dụng khẩu trang lọc bụi mịn chuẩn N95, KN95, KF94 thay thế khẩu trang y tế; phương pháp súc họng, rửa mũi bằng nước muối sinh lý.
+  3. 🛵 **Người tham gia giao thông và giao hàng, tài xế:** Nhận diện vùng phơi nhiễm khói bụi cao (nút giao thông, hầm chui); giải pháp che chắn mắt và hệ hô hấp.
+  4. 🏠 **Không gian sống và nơi làm việc:** Tiêu chuẩn chọn máy lọc không khí màng HEPA; cách kết hợp cây xanh thanh lọc độc tố trong nhà (Trầu bà, Lan ý, Lưỡi hổ).
+* **Bảng quy chuẩn phân cấp AQI quốc tế (US EPA):**
+  * Tra cứu đầy đủ các dải điểm AQI từ 0 đến trên 300, phân loại màu sắc, mức độ tác động sinh học và hành vi phòng ngừa tương ứng.
 
-* **Dữ liệu khí tượng & khí quyển:** [Open-Meteo Open Data API](https://open-meteo.com/) tổng hợp từ chương trình Copernicus CAMS của Liên minh Châu Âu kết hợp trạm quan trắc mặt đất.
-* **Tiêu chuẩn tính toán AQI:** Chuẩn tính toán chỉ số chất lượng không khí của Cục Bảo vệ Môi trường Hoa Kỳ (**US EPA**).
-* **Khuyến nghị nồng độ phơi nhiễm:** Dựa theo hướng dẫn chất lượng không khí toàn cầu của Tổ chức Y tế Thế giới (**WHO 2021**): $PM_{2.5} \le 15\,\mu g/m^3$, $PM_{10} \le 45\,\mu g/m^3$.
-* **Thư viện giao diện:** Tailwind CSS CDN, Leaflet.js v1.9.4, Chart.js.
+---
+
+## 🛠️ Công nghệ xây dựng
+
+| Thành phần | Công nghệ / Thư viện | Vai trò |
+|------------|----------------------|---------|
+| **Cốt lõi** | HTML5, CSS3, JavaScript ES6+ | Kiến trúc Single Page Application thuần túy, không cần build step |
+| **Giao diện** | [Tailwind CSS v3 CDN](https://cdn.tailwindcss.com) | Thiết kế Clean Weather Light Theme, linh hoạt và đáp ứng tốt mọi kích thước màn hình |
+| **Bản đồ** | [Leaflet.js v1.9.4](https://unpkg.com/leaflet@1.9.4/) | Hiển thị bản đồ số Esri World Street Map và OpenStreetMap, ghim trạm đo tương tác |
+| **Biểu đồ** | [Chart.js](https://cdn.jsdelivr.net/npm/chart.js) | Vẽ đồ thị biến thiên $PM_{2.5}$ 24 giờ sắc nét |
+| **Nguồn dữ liệu** | [Open-Meteo Air Quality & Weather API](https://open-meteo.com) | Dữ liệu mở cập nhật liên tục từ mô hình Copernicus CAMS và quan trắc khí tượng |
+
+---
+
+## 🌿 Tiêu chuẩn minh bạch dữ liệu
+
+* **Mô hình dự báo và quan trắc:** Dữ liệu vi khí hậu và chất lượng không khí được tổng hợp từ dịch vụ **Copernicus Atmosphere Monitoring Service (CAMS)** của Liên minh Châu Âu kết hợp trạm quan trắc mặt đất thông qua Open-Meteo API.
+* **Tiêu chuẩn tính toán AQI:** Áp dụng công thức quy đổi chỉ số chất lượng không khí dựa trên tiêu chuẩn của **Cục Bảo vệ Môi trường Hoa Kỳ (US EPA)**.
+* **Ngưỡng an toàn bụi mịn:** Tham chiếu hướng dẫn nồng độ phơi nhiễm khuyến nghị của **Tổ chức Y tế Thế giới (WHO 2021)**: $PM_{2.5} \le 15\,\mu g/m^3$ (trung bình 24h) và $PM_{10} \le 45\,\mu g/m^3$.
 
 ---
 
