@@ -140,7 +140,7 @@
   <!-- ========================================== -->
   <!-- 1. TOP NAVIGATION BAR (TỐI GIẢN, CHUYÊN NGHIỆP) -->
   <!-- ========================================== -->
-  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
+  <header class="sticky top-0 z-[1200] bg-white/95 backdrop-blur-md border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
       
       <!-- Logo & Tên dự án -->
@@ -315,26 +315,23 @@
           </div>
 
           <!-- Khung chứa Leaflet Map: flex-1 để lấp đầy toàn bộ chiều cao khung trái -->
-          <div class="relative w-full flex-1 min-h-[480px] bg-slate-100" id="mapContainer">
+          <div class="relative w-full flex-1 min-h-[480px] bg-slate-100 overflow-hidden" id="mapContainer">
             <div id="map" style="width: 100%; height: 100%; min-height: 480px;"></div>
-            
-            <!-- Chú giải thang màu AQI nổi góc trên bản đồ -->
-            <div class="absolute top-3 right-3 z-[400] bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl p-2.5 shadow-md text-[11px] font-medium text-slate-700 hidden sm:block">
-              <div class="font-bold text-slate-800 mb-1.5 border-b border-slate-100 pb-1">
-                Thang đo chất lượng:
-              </div>
-              <div class="space-y-1">
-                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>&le; 50: Tốt</span></div>
-                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span>51 - 100: Trung bình</span></div>
-                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span><span>101 - 150: Nhạy cảm</span></div>
-                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span><span>&gt; 150: Nguy hại</span></div>
-              </div>
-            </div>
+          </div>
 
-            <!-- Hướng dẫn click nổi góc dưới bản đồ -->
-            <div class="absolute bottom-3 left-3 z-[400] bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 shadow-sm flex items-center gap-2 pointer-events-none">
+          <!-- Chân bản đồ: Chú giải Thang đo AQI & Hướng dẫn sử dụng (Nằm cố định trong khung, triệt tiêu hoàn toàn hiện tượng tràn khi cuộn trang) -->
+          <div class="p-3 sm:px-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-600 shrink-0">
+            <div class="flex items-center gap-2 font-medium">
               <span class="w-2 h-2 rounded-full bg-sky-500"></span>
-              <span class="font-medium">Chạm hoặc click điểm bất kỳ trên bản đồ để đo</span>
+              <span class="text-slate-700 text-[11px] sm:text-xs">Click bất kỳ vị trí trên bản đồ để đo tức thì</span>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3 text-[11px] font-semibold">
+              <span class="text-slate-400 font-normal">Thang AQI:</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>&le;50 Tốt</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>51-100 TB</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>101-150 K.Khỏe</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>&gt;150 Nguy hại</span>
             </div>
           </div>
 
@@ -836,17 +833,42 @@
     let aqiZoneCircle = null;
     let trendChart = null;
     let currentMapTileLayer = null;
-    let mapTileMode = 0; // 0: Carto, 1: Esri, 2: OSM
+    let mapTileMode = 0; // 0: Esri Street, 1: Esri Topo, 2: OSM France, 3: OSM Standard
     let activeTab = 'today';
 
     let calendarDate = new Date();
     let monthlyAirHistory = {};
 
-    // CÁC SERVER BẢN ĐỒ DỰ PHÒNG (Không bao giờ mất bản đồ)
+    // CÁC SERVER BẢN ĐỒ DỰ PHÒNG HOÀN TOÀN MIỄN PHÍ, KHÔNG CẦN API KEY, KHÔNG CÓ WATERMARK
     const TILE_LAYERS = [
-      { name: 'Carto Voyager (Sắc nét)', url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', sub: 'abcd' },
-      { name: 'Esri World Street (Ổn định)', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', sub: [] },
-      { name: 'OpenStreetMap Chuẩn', url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', sub: [] }
+      { 
+        name: 'Esri World Street (Chi tiết & Ổn định)', 
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', 
+        sub: [],
+        maxZoom: 19,
+        attr: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, TomTom'
+      },
+      { 
+        name: 'Esri World Topo (Địa hình tự nhiên)', 
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', 
+        sub: [],
+        maxZoom: 19,
+        attr: 'Tiles &copy; Esri &mdash; Source: Esri, USGS, FAO'
+      },
+      { 
+        name: 'OpenStreetMap France (Cộng đồng OSM)', 
+        url: 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', 
+        sub: ['a', 'b', 'c'],
+        maxZoom: 20,
+        attr: '&copy; OpenStreetMap France contributors'
+      },
+      { 
+        name: 'OpenStreetMap Chuẩn', 
+        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 
+        sub: [],
+        maxZoom: 19,
+        attr: '&copy; OpenStreetMap contributors'
+      }
     ];
 
     // ------------------------------------------
@@ -997,19 +1019,15 @@
 
       const layerConfig = TILE_LAYERS[modeIndex];
       currentMapTileLayer = L.tileLayer(layerConfig.url, {
-        attribution: '&copy; Dữ liệu bản đồ mở',
-        subdomains: layerConfig.sub,
-        maxZoom: 19
+        attribution: layerConfig.attr || '&copy; Dữ liệu bản đồ mở',
+        subdomains: layerConfig.sub || [],
+        maxZoom: layerConfig.maxZoom || 19,
+        crossOrigin: true
       }).addTo(map);
-
-      // Tự động chuyển layer dự phòng nếu bị lỗi tile
-      currentMapTileLayer.on('tileerror', function() {
-        console.warn("Lỗi tải tile, chuyển server dự phòng...");
-      });
 
       const mapStyleLabel = document.getElementById('mapStyleLabel');
       if (mapStyleLabel) {
-        mapStyleLabel.innerText = `Kiểu: ${layerConfig.name.split(' ')[0]}`;
+        mapStyleLabel.innerText = layerConfig.name.split(' (')[0];
       }
     }
 
@@ -1652,11 +1670,12 @@
         });
       });
 
-      // Nút chuyển đổi các nhà cung cấp bản đồ (Carto -> Esri -> OpenStreetMap)
+      // Nút chuyển đổi các nhà cung cấp bản đồ (Esri Street -> Esri Topo -> OSM France -> OSM Standard)
       const btnMapStyle = document.getElementById('btnMapStyle');
       btnMapStyle.addEventListener('click', () => {
         mapTileMode = (mapTileMode + 1) % TILE_LAYERS.length;
         setTileLayer(mapTileMode);
+        showToast('Đã đổi kiểu bản đồ', `Đang hiển thị nguồn: ${TILE_LAYERS[mapTileMode].name}`);
       });
     }
 

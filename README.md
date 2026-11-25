@@ -22,7 +22,7 @@ Toàn bộ ứng dụng được xây dựng theo kiến trúc Web tĩnh nhẹ, 
   * Tích hợp sẵn danh bạ hơn **25 đô thị trọng điểm** trải dài khắp 3 miền: Miền Bắc, Miền Trung & Tây Nguyên, Miền Nam.
   * Tích hợp tính năng **"Vị trí của tôi"** (HTML5 Geolocation) để tự động định vị GPS của người dùng.
   * Cho phép **click hoặc chạm vào bất kỳ tọa độ nào trên bản đồ** để đo thông số vi khí hậu tức thì tại điểm đó.
-  * Hỗ trợ chuyển đổi linh hoạt giữa bản đồ chuẩn OpenStreetMap và bản đồ chi tiết Carto Voyager.
+  * Hỗ trợ chuyển đổi linh hoạt giữa bản đồ chi tiết Esri World Street Map và bản đồ cộng đồng OpenStreetMap.
 * **Đồng hồ thời gian thực (Live Clock):**
   * Hiển thị Thứ, Ngày Tháng Năm và Giờ Phút Giây chạy trực tiếp theo múi giờ Việt Nam (GMT+7).
   * Mốc thời gian cập nhật số liệu của trạm quan trắc.
@@ -70,7 +70,7 @@ Toàn bộ ứng dụng được xây dựng theo kiến trúc Web tĩnh nhẹ, 
 |------------|----------------------|---------|
 | **Cốt lõi** | HTML5, CSS3, JavaScript ES6+ | Kiến trúc Single Page Application thuần túy, không cần build step |
 | **Giao diện** | [Tailwind CSS v3 CDN](https://cdn.tailwindcss.com) | Thiết kế Clean Weather Light Theme, linh hoạt và đáp ứng tốt mọi kích thước màn hình |
-| **Bản đồ** | [Leaflet.js v1.9.4](https://unpkg.com/leaflet@1.9.4/) | Hiển thị bản đồ số OpenStreetMap & Carto Voyager, ghim trạm đo tương tác |
+| **Bản đồ** | [Leaflet.js v1.9.4](https://unpkg.com/leaflet@1.9.4/) | Hiển thị bản đồ số Esri World Street Map & OpenStreetMap, ghim trạm đo tương tác |
 | **Biểu đồ** | [Chart.js](https://cdn.jsdelivr.net/npm/chart.js) | Vẽ đồ thị biến thiên $PM_{2.5}$ 24 giờ sắc nét |
 | **Biểu tượng** | [Lucide Icons](https://unpkg.com/lucide@latest) | Bộ icon hiện đại, trang nhã |
 | **Nguồn dữ liệu** | [Open-Meteo Air Quality & Weather API](https://open-meteo.com) | Dữ liệu mở cập nhật liên tục từ mô hình Copernicus CAMS và quan trắc khí tượng |
